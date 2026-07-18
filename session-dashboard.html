@@ -48,7 +48,7 @@
   <div class="grid">
     <div class="card"><h3>🏠 Haus</h3><div class="stat">6 Wohnungen</div><div style="color:var(--text2);font-size:0.85rem">max. 12 Personen</div></div>
     <div class="card"><h3>🧺 Maschinen</h3><div class="stat">2</div><div style="color:var(--text2);font-size:0.85rem">Waschmaschine + Tumbler</div></div>
-    <div class="card"><h3>⏱️ Buchungsfenster</h3><div class="stat warn">5 Std.</div><div style="color:var(--text2);font-size:0.85rem">max. Vorausbuchung</div></div>
+    <div class="card"><h3>⏱️ Buchungsfenster</h3><div class="stat warn">2 Tage</div><div style="color:var(--text2);font-size:0.85rem">heute + folgende 2 Tage</div></div>
     <div class="card"><h3>🔐 Sicherheit</h3><div class="stat ok">RPC-only</div><div style="color:var(--text2);font-size:0.85rem">kein direktes Tabellen-CRUD</div></div>
   </div>
 
@@ -60,6 +60,10 @@
       <tr><td><code>supabase-setup.sql</code></td><td>Tabellen, RLS, RPC-Funktionen, Admin-Konto</td><td><span class="pill done">fertig</span></td></tr>
       <tr><td><code>README.md</code></td><td>Setup-Anleitung</td><td><span class="pill done">fertig</span></td></tr>
       <tr><td><code>SESSION-LOG.md</code></td><td>Bau-Protokoll &amp; Entscheidungen</td><td><span class="pill done">fertig</span></td></tr>
+      <tr><td><code>supabase-setup-wochenplan.sql</code></td><td>Wunschboard-Tabelle &amp; RPCs</td><td><span class="pill done">ausgeführt</span></td></tr>
+      <tr><td><code>supabase-migration-2tage.sql</code></td><td>Buchungsfenster 5h → 2 Tage</td><td><span class="pill done">ausgeführt</span></td></tr>
+      <tr><td><code>make_qr_posters.py</code></td><td>Generator für die QR-Poster</td><td><span class="pill done">fertig</span></td></tr>
+      <tr><td><code>qr-poster-sonnig / himmel / frisch .jpg</code></td><td>druckbare QR-Poster (decodier-geprüft)</td><td><span class="pill done">fertig</span></td></tr>
       <tr><td><code>session-dashboard.html</code></td><td>diese Seite</td><td><span class="pill done">fertig</span></td></tr>
     </table>
   </div>
@@ -67,9 +71,11 @@
   <div class="section">
     <h2 style="font-size:1.3rem;margin-bottom:0.8rem">✅ Offene Schritte für dich</h2>
     <ul>
-      <li><span class="pill todo">Supabase</span> <code>supabase-setup.sql</code> im SQL Editor des bestehenden Tippspiel-Projekts ausführen</li>
-      <li><span class="pill todo">GitHub</span> Ordner in GitHub Desktop hinzufügen → Repository erstellen (Visibility: <strong>Private</strong>) → Push</li>
-      <li><span class="pill todo">Pages</span> GitHub Pages im Repo aktivieren, damit der QR-Code/Link funktioniert</li>
+      <li><span class="pill done">erledigt</span> Supabase: alle SQL-Skripte ausgeführt (Setup, Wunschboard, 2-Tage-Migration) — Admin-Login live geprüft</li>
+      <li><span class="pill done">erledigt</span> Privates GitHub-Repo <a href="https://github.com/McBroz/woeschplan-so16" target="_blank">McBroz/woeschplan-so16</a> erstellt</li>
+      <li><span class="pill todo">GitHub Push</span> Ordner in GitHub Desktop hinzufügen → <strong>Push origin</strong> (Remote ist gesetzt)</li>
+      <li><span class="pill todo">Pages</span> GitHub Pages im Repo aktivieren (Branch <code>main</code>) — dann funktioniert der QR-Link live</li>
+      <li><span class="pill todo">QR ausdrucken</span> eines der 3 Poster (<code>qr-poster-*.jpg</code>) aufhängen 🖨️</li>
       <li><span class="pill todo">Prüfen</span> Anzahl/Namen der Waschmaschinen im <code>MACHINES</code>-Array in <code>index.html</code> falls abweichend anpassen</li>
     </ul>
   </div>

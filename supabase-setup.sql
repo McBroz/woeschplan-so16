@@ -118,7 +118,8 @@ language sql security definer as $$
   select name, apartment, is_admin, blocked from public.wp_users order by created_at;
 $$;
 
--- Buchung erstellen: max. 5h in der Zukunft, kein Überlappen auf derselben Maschine.
+-- Buchung erstellen: buchbar für heute + die folgenden 2 Tage (rollierendes
+-- 72h-Fenster, zeitzonensicher), kein Überlappen auf derselben Maschine.
 create or replace function public.wp_create_booking(
   p_name text, p_pin text, p_machine int, p_start timestamptz, p_end timestamptz
 ) returns jsonb language plpgsql security definer as $$
@@ -128,11 +129,11 @@ begin
   if not found or v_user.pin <> p_pin then
     raise exception 'Login ungültig';
   end if;
-  if p_start < now() then
-    raise exception 'Start liegt in der Vergangenheit';
+  if p_end <= now() then
+    raise exception 'Dieser Zeitraum ist bereits vorbei';
   end if;
-  if p_start > now() + interval '5 hours' then
-    raise exception 'Buchungen sind nur bis 5 Stunden im Voraus möglich';
+  if p_start > now() + interval '3 days' then
+    raise exception 'Buchbar nur für heute und die folgenden 2 Tage';
   end if;
   if p_end <= p_start then
     raise exception 'Ungültiger Zeitraum';

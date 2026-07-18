@@ -39,17 +39,29 @@
   @keyframes sunPulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.06); } }
 
   /* ─── Header ─── */
-  header { background: rgba(255,255,255,0.75); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
-    border-bottom: 1px solid var(--border); padding: 0 1.6rem; display: flex; align-items: center; justify-content: space-between;
-    height: 68px; position: sticky; top: 0; z-index: 100; box-shadow: 0 4px 20px rgba(180,120,40,0.08); }
-  .brand { font-size: 1.5rem; font-weight: 800; display: flex; align-items: center; gap: 8px; color: var(--text); }
+  header { background: rgba(255,255,255,0.82); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--border); padding: 0.5rem 1.6rem; display: flex; align-items: center; gap: 10px; justify-content: space-between;
+    min-height: 66px; flex-wrap: wrap; position: sticky; top: 0; z-index: 100; box-shadow: 0 4px 20px rgba(180,120,40,0.08); }
+  .brand { font-size: 1.4rem; font-weight: 800; display: flex; align-items: center; gap: 8px; color: var(--text); white-space: nowrap; }
   .brand span { color: var(--sun2); }
   .nav { display: flex; gap: 0.4rem; flex-wrap: wrap; }
   .nav-btn { background: transparent; border: 1px solid var(--border); color: var(--text2); padding: 9px 16px;
     border-radius: 10px; cursor: pointer; font-size: 0.92rem; font-weight: 600; transition: all 0.2s; white-space: nowrap; }
   .nav-btn:hover, .nav-btn.active { background: linear-gradient(135deg, var(--sun) 0%, var(--sun2) 100%); border-color: transparent; color: #fff; }
-  .user-badge { font-size: 0.88rem; color: var(--text2); white-space: nowrap; }
+  .user-badge { font-size: 0.88rem; color: var(--text2); white-space: nowrap; display: flex; align-items: center; gap: 6px; }
   .user-badge strong { color: var(--text); }
+
+  /* ─── Mobile-Header: sauber gestapelt statt überlappend ─── */
+  @media (max-width: 720px) {
+    header { padding: 0.5rem 0.9rem; gap: 8px; }
+    .brand { font-size: 1.2rem; order: 1; }
+    .user-badge { order: 2; margin-left: auto; font-size: 0.8rem; }
+    .nav { order: 3; width: 100%; flex-wrap: nowrap; overflow-x: auto; padding-bottom: 2px; -webkit-overflow-scrolling: touch; }
+    .nav::-webkit-scrollbar { height: 0; }
+    .nav-btn { padding: 8px 13px; font-size: 0.85rem; flex: 0 0 auto; }
+    .page { padding: 1.6rem 1rem 3rem; }
+    .sun-deco { width: 180px; height: 180px; top: -70px; right: -70px; }
+  }
 
   /* ─── Pages ─── */
   .page { display: none; max-width: 980px; margin: 0 auto; padding: 2.4rem 1.6rem 3rem; position: relative; z-index: 1; }
@@ -95,9 +107,14 @@
   .day-tabs { display: flex; gap: 6px; overflow-x: auto; margin-bottom: 1.4rem; padding-bottom: 4px; }
   .day-tab { flex: 0 0 auto; background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 10px 14px;
     cursor: pointer; text-align: center; min-width: 74px; transition: all 0.15s; }
-  .day-tab.active { background: linear-gradient(135deg, var(--sun) 0%, var(--sun2) 100%); border-color: transparent; color: #fff; }
+  .day-tab.active { background: linear-gradient(135deg, var(--sun) 0%, var(--sun2) 100%); border-color: transparent; color: #fff; box-shadow: 0 6px 16px rgba(255,140,66,0.4); transform: translateY(-2px); }
+  .day-tab:hover { border-color: var(--sun2); }
   .day-tab .dt-name { font-size: 0.72rem; text-transform: uppercase; opacity: 0.8; font-weight: 700; }
   .day-tab .dt-num { font-size: 1.15rem; font-weight: 800; }
+  .day-tab .dt-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--ok); margin: 4px auto 0; box-shadow: 0 0 6px var(--ok); }
+  .day-tab.active .dt-dot { background: #fff; box-shadow: 0 0 6px #fff; }
+  .day-tab .dt-lock { font-size: 0.6rem; margin-top: 3px; opacity: 0.6; }
+  .day-tab.locked { opacity: 0.62; }
 
   .occupancy-banner { display: flex; align-items: center; gap: 16px; background: var(--card); border: 1px solid var(--border);
     border-radius: var(--radius); padding: 1.1rem 1.4rem; margin-bottom: 1.4rem; box-shadow: 0 8px 24px rgba(180,120,40,0.08); }
@@ -106,21 +123,49 @@
   .occupancy-frac { font-size: 1.6rem; font-weight: 800; }
   .occupancy-label { font-size: 0.82rem; color: var(--text2); }
 
-  .slot-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 12px; }
-  .slot-card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 0.9rem 1rem;
-    box-shadow: 0 6px 20px rgba(180,120,40,0.08); transition: transform 0.15s; }
-  .slot-card:hover { transform: translateY(-2px); }
-  .slot-time { font-weight: 800; font-size: 1rem; margin-bottom: 6px; }
-  .slot-machines { display: flex; gap: 6px; margin-bottom: 8px; }
-  .m-pill { flex: 1; text-align: center; font-size: 0.72rem; font-weight: 700; padding: 5px 4px; border-radius: 8px; }
-  .m-free { background: rgba(76,175,109,0.14); color: var(--ok); }
-  .m-taken { background: rgba(232,93,93,0.14); color: var(--full); }
-  .m-mine { background: rgba(46,134,171,0.16); color: var(--sky); }
-  .slot-booked-by { font-size: 0.72rem; color: var(--text2); min-height: 1.2em; }
-  .slot-past { opacity: 0.4; filter: grayscale(0.6); }
-  .slot-toofar { opacity: 0.55; }
-  .badge-window { display: inline-block; font-size: 0.62rem; background: rgba(46,134,171,0.12); color: var(--sky);
-    border-radius: 6px; padding: 2px 6px; margin-left: 4px; font-weight: 700; }
+  .slot-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 14px; }
+  .slot-card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 1rem 1.1rem;
+    box-shadow: 0 6px 20px rgba(180,120,40,0.08); transition: transform 0.18s, box-shadow 0.18s;
+    opacity: 0; transform: translateY(12px); animation: cardIn 0.4s ease forwards; }
+  @keyframes cardIn { to { opacity: 1; transform: translateY(0); } }
+  .slot-card:hover { transform: translateY(-3px); box-shadow: 0 12px 28px rgba(180,120,40,0.16); }
+  .slot-time { font-weight: 800; font-size: 1.05rem; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+  .slot-time .clock { font-size: 0.95rem; }
+  .slot-machines { display: flex; flex-direction: column; gap: 8px; }
+  .m-row { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 12px; transition: all 0.15s; }
+  .m-ico { font-size: 1.3rem; flex-shrink: 0; }
+  .m-info { display: flex; flex-direction: column; line-height: 1.25; flex: 1; min-width: 0; }
+  .m-info b { font-size: 0.86rem; }
+  .m-by { font-size: 0.72rem; opacity: 0.85; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .m-free { background: rgba(76,175,109,0.12); color: var(--ok); cursor: pointer; border: 1px dashed rgba(76,175,109,0.5); }
+  .m-free:hover { background: rgba(76,175,109,0.22); transform: scale(1.02); }
+  .m-free:hover .m-ico { animation: spin 1.2s linear infinite; }
+  .m-plus { font-size: 1.3rem; font-weight: 700; flex-shrink: 0; }
+  .m-taken { background: rgba(232,93,93,0.12); color: var(--full); }
+  .m-mine { background: rgba(46,134,171,0.14); color: var(--sky); }
+  .m-mine .m-ico { animation: spin 3s linear infinite; }
+  .m-idle { background: var(--cream); color: var(--text2); }
+  .m-x { background: var(--full); color: #fff; border: none; border-radius: 8px; width: 26px; height: 26px; cursor: pointer;
+    font-size: 0.8rem; flex-shrink: 0; transition: transform 0.15s; }
+  .m-x:hover { transform: scale(1.15); }
+  .m-locked { font-size: 0.85rem; opacity: 0.6; flex-shrink: 0; }
+  .slot-past { opacity: 0.42; filter: grayscale(0.6); }
+  .slot-toofar { opacity: 0.6; }
+  .badge-window { display: inline-flex; align-items: center; gap: 6px; font-size: 0.78rem; background: linear-gradient(135deg, rgba(46,134,171,0.1), rgba(110,198,232,0.12));
+    color: var(--sky); border: 1px solid rgba(46,134,171,0.2); border-radius: 10px; padding: 8px 14px; font-weight: 600; }
+
+  /* ─── Waschmaschine-Illustration (animiert) ─── */
+  .washer-hero { display: flex; align-items: center; gap: 16px; background: linear-gradient(135deg, #FFF6E4 0%, #FFEFD6 100%);
+    border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem 1.4rem; margin-bottom: 1.2rem; overflow: hidden; position: relative; }
+  .washer-hero .wh-text { flex: 1; }
+  .washer-hero .wh-title { font-family: 'Baloo 2', sans-serif; font-weight: 800; font-size: 1.15rem; }
+  .washer-hero .wh-sub { font-size: 0.82rem; color: var(--text2); }
+  .washer-svg { width: 76px; height: 76px; flex-shrink: 0; }
+  .washer-svg .drum { transform-origin: 38px 42px; animation: spin 4s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .bubble { position: absolute; border-radius: 50%; background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.9), rgba(110,198,232,0.35));
+    animation: rise linear infinite; pointer-events: none; }
+  @keyframes rise { 0% { transform: translateY(20px) scale(0.6); opacity: 0; } 20% { opacity: 0.8; } 100% { transform: translateY(-90px) scale(1); opacity: 0; } }
 
   /* ─── Wunschboard ─── */
   .wp-week { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px,1fr)); gap: 12px; }
@@ -236,9 +281,30 @@
     <div class="section-title">📅 Waschraum-Belegung</div>
     <button class="refresh-btn" onclick="loadKalender()">↻ Aktualisieren</button>
   </div>
+
+  <div class="washer-hero">
+    <svg class="washer-svg" viewBox="0 0 76 76">
+      <rect x="8" y="6" width="60" height="64" rx="12" fill="#fff" stroke="#FFB627" stroke-width="2.5"/>
+      <rect x="8" y="6" width="60" height="15" rx="8" fill="#FFE7BE"/>
+      <circle cx="20" cy="13.5" r="2.4" fill="#FF8C42"/><circle cx="29" cy="13.5" r="2.4" fill="#4CAF6D"/>
+      <circle cx="38" cy="42" r="22" fill="#EAF6FC" stroke="#6EC6E8" stroke-width="2"/>
+      <g class="drum">
+        <circle cx="38" cy="42" r="15" fill="none" stroke="#2E86AB" stroke-width="2" stroke-dasharray="5 6"/>
+        <circle cx="38" cy="30" r="3" fill="#FFB627"/><circle cx="49" cy="46" r="3" fill="#FF8C42"/><circle cx="29" cy="50" r="3" fill="#6EC6E8"/>
+      </g>
+    </svg>
+    <div class="wh-text">
+      <div class="wh-title">Bereit zum Waschen? ☀️</div>
+      <div class="wh-sub">Tippe unten auf einen freien Platz — buchbar für <b>heute &amp; die nächsten 2 Tage</b>.</div>
+    </div>
+    <div class="bubble" style="width:14px;height:14px;left:44px;bottom:8px;animation-duration:4s"></div>
+    <div class="bubble" style="width:9px;height:9px;left:60px;bottom:4px;animation-duration:5.5s;animation-delay:1s"></div>
+    <div class="bubble" style="width:11px;height:11px;left:26px;bottom:2px;animation-duration:4.8s;animation-delay:2s"></div>
+  </div>
+
   <div class="day-tabs" id="day-tabs"></div>
   <div class="occupancy-banner" id="occ-banner"></div>
-  <div class="badge-window">🕐 Buchen nur bis 5 Std. im Voraus möglich — fair für alle 12 Personen</div>
+  <div class="badge-window">🕐 Fair für alle 12 Personen: gebucht wird für <b style="margin:0 3px">heute + die folgenden 2 Tage</b> — spätere Tage siehst du als Vorschau 🔒</div>
   <div style="height:14px"></div>
   <div class="slot-grid" id="slot-grid"></div>
 </div>
@@ -292,9 +358,9 @@ const SUPABASE_URL = 'https://tjrybgrdjvntdbjdlyio.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRqcnliZ3JkanZudGRiamRseWlvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA4NDk3MTMsImV4cCI6MjA5NjQyNTcxM30.socQYgTkbSm0VZ9H5_7BoXY_PvhyjKSMrtWnDtKa6XI';
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-const MACHINES = [{id:1,label:'Waschmaschine'},{id:2,label:'Tumbler'}];
+const MACHINES = [{id:1,label:'Waschmaschine',icon:'🌀'},{id:2,label:'Tumbler',icon:'🔥'}];
 const SLOT_START_HOUR = 7, SLOT_END_HOUR = 22, SLOT_LEN_H = 2; // 2h-Slots 07–22 Uhr
-const BOOK_WINDOW_H = 5;
+const BOOK_WINDOW_DAYS = 2; // buchbar: heute + die folgenden 2 Tage (offset 0,1,2)
 
 let ME = null, MY_PIN = null, IS_ADMIN = false, IS_NEW_NAME = false;
 let calDayOffset = 0;
@@ -433,9 +499,11 @@ function renderDayTabs(){
   const el = document.getElementById('day-tabs'); el.innerHTML='';
   for(let i=0;i<7;i++){
     const {name,num} = dayLabel(i);
+    const bookable = i <= BOOK_WINDOW_DAYS;
     const div = document.createElement('div');
-    div.className = 'day-tab' + (i===calDayOffset ? ' active' : '');
-    div.innerHTML = `<div class="dt-name">${i===0?'Heute':name}</div><div class="dt-num">${num}</div>`;
+    div.className = 'day-tab' + (i===calDayOffset ? ' active' : '') + (bookable ? ' bookable' : ' locked');
+    div.innerHTML = `<div class="dt-name">${i===0?'Heute':i===1?'Morgen':name}</div><div class="dt-num">${num}</div>`
+      + (bookable ? '<div class="dt-dot" title="buchbar"></div>' : '<div class="dt-lock" title="nur Vorschau">🔒</div>');
     div.onclick = ()=>{ calDayOffset=i; loadKalender(); };
     el.appendChild(div);
   }
@@ -463,34 +531,50 @@ async function loadKalender(){
   if(error){ grid.innerHTML = '<div style="color:var(--full)">Fehler beim Laden</div>'; return; }
 
   const now = new Date();
-  const bookLimit = new Date(now.getTime() + BOOK_WINDOW_H*3600*1000);
+  const dayTooFar = calDayOffset > BOOK_WINDOW_DAYS;
   const totalSlots = slotsForDay().length * MACHINES.length;
   let bookedCount = 0;
 
   grid.innerHTML = '';
+  let animIdx = 0;
   for(const h of slotsForDay()){
     const start = new Date(dayStart); start.setHours(h,0,0,0);
     const end = new Date(start); end.setHours(h+SLOT_LEN_H,0,0,0);
     const isPast = end <= now;
-    const tooFar = start > bookLimit;
+    const tooFar = dayTooFar;
+    const bookable = !isPast && !tooFar;
 
     const card = document.createElement('div');
     card.className = 'slot-card' + (isPast ? ' slot-past' : '') + (!isPast && tooFar ? ' slot-toofar' : '');
+    card.style.animationDelay = (animIdx++ * 0.03) + 's';
     const timeStr = `${String(h).padStart(2,'0')}:00–${String(h+SLOT_LEN_H).padStart(2,'0')}:00`;
 
-    let pillsHtml = '', namesHtml = '';
+    let rowsHtml = '';
     for(const m of MACHINES){
       const b = bookings.find(x=>x.machine===m.id && new Date(x.start_ts).getTime()===start.getTime());
       if(b){
         bookedCount++;
         const mine = b.user_name.toLowerCase()===ME.toLowerCase();
-        pillsHtml += `<div class="m-pill ${mine?'m-mine':'m-taken'}" title="${escHtml(b.user_name)}">${m.label}</div>`;
-        namesHtml += `${mine?'Du':escHtml(b.user_name)} (${m.label})${mine?` <a href="#" onclick="cancelBooking(${b.id});return false;" style="color:var(--full)">✕</a>`:''}<br>`;
+        const canCancel = mine || IS_ADMIN;
+        rowsHtml += `<div class="m-row ${mine?'m-mine':'m-taken'}">
+            <span class="m-ico">${m.icon}</span>
+            <span class="m-info"><b>${m.label}</b><span class="m-by">${mine?'🙋 Du':'belegt: '+escHtml(b.user_name)}</span></span>
+            ${canCancel?`<button class="m-x" title="Buchung stornieren" onclick="cancelBooking(${b.id})">✕</button>`:'<span class="m-locked">🔒</span>'}
+          </div>`;
+      } else if(bookable){
+        rowsHtml += `<div class="m-row m-free" onclick="bookSlot(${m.id},'${start.toISOString()}','${end.toISOString()}')" title="Jetzt buchen">
+            <span class="m-ico">${m.icon}</span>
+            <span class="m-info"><b>${m.label}</b><span class="m-by">frei — tippen zum Buchen</span></span>
+            <span class="m-plus">＋</span>
+          </div>`;
       } else {
-        pillsHtml += `<div class="m-pill m-free" ${isPast||tooFar?'':`onclick="bookSlot(${m.id},'${start.toISOString()}','${end.toISOString()}')" style="cursor:pointer"`}>${m.label} frei</div>`;
+        rowsHtml += `<div class="m-row m-idle">
+            <span class="m-ico">${m.icon}</span>
+            <span class="m-info"><b>${m.label}</b><span class="m-by">${isPast?'vorbei':'frei'}</span></span>
+          </div>`;
       }
     }
-    card.innerHTML = `<div class="slot-time">${timeStr}</div><div class="slot-machines">${pillsHtml}</div><div class="slot-booked-by">${namesHtml}</div>`;
+    card.innerHTML = `<div class="slot-time"><span class="clock">🕐</span> ${timeStr}</div><div class="slot-machines">${rowsHtml}</div>`;
     grid.appendChild(card);
   }
 
