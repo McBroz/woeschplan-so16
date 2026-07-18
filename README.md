@@ -9,8 +9,10 @@ Reines HTML/JS ohne Build-Pipeline, Backend = Supabase (Postgres + RPC-Funktione
    WM-Tippspiel) im SQL Editor das komplette Skript [`supabase-setup.sql`](supabase-setup.sql)
    ausführen. Das legt die Tabellen, RLS-Regeln, RPC-Funktionen und das Admin-Konto
    `Ale` (PIN `8134`) an.
-2. **Hosting:** `index.html` per GitHub Pages ausliefern (Repo **privat**, Pages-Branch
-   aktivieren unter Settings → Pages).
+2. **Hosting:** `index.html` per GitHub Pages ausliefern. GitHub Pages funktioniert auf dem
+   kostenlosen Plan nur bei **öffentlichen** Repos (private Repos brauchen GitHub Pro) — das
+   Repo ist deshalb public. Der Code ist damit sichtbar, die App selbst bleibt aber
+   PIN-geschützt (siehe Sicherheit unten).
 3. Fertig — der QR-Code auf der Login-Seite verlinkt automatisch auf die aktuelle URL.
 
 ## Login
@@ -20,14 +22,20 @@ Reines HTML/JS ohne Build-Pipeline, Backend = Supabase (Postgres + RPC-Funktione
 - Admin-Konto: Name `Ale`, PIN `8134` → sieht Nutzerliste inkl. PINs, kann
   Chat moderieren, PINs zurücksetzen, Nutzer löschen, Buchungen stornieren.
 
-## Wunschboard (Wochenplan)
+## Kalender vs. Wochenwünsche — der Unterschied
 
-Zusätzlich zur festen 5h-Buchung gibt es ein unverbindliches **Wunschboard** für die
-kommenden 7 Tage: jede:r trägt frei ein, wann sie/er sich den Waschraum wünscht
-(Tag + Tageszeit morgens/mittags/nachmittags/abends + optionale Notiz). Es ist
-**keine Reservation** — mehrere Wünsche am selben Slot sind möglich, man spricht
-sich einfach respektvoll im Chat ab. Setup: zusätzlich
-[`supabase-setup-wochenplan.sql`](supabase-setup-wochenplan.sql) im SQL Editor ausführen.
+Zwei bewusst getrennte Ansichten, weil sie unterschiedliche Probleme lösen:
+
+- **📅 Kalender:** feste, verbindliche Buchung eines Maschinen-Slots — aber nur für
+  **heute + die folgenden 2 Tage**, damit niemand die Maschine wochenlang blockiert.
+- **💭 Wochenwünsche:** weil man 3 Tage im Voraus oft noch nicht buchen kann, aber schon
+  weiß "ich muss Freitag waschen", gibt's hier ein unverbindliches Wunschboard für die
+  **ganze kommende Woche** (Tag + Tageszeit + Notiz). Keine Reservation, keine
+  Kollisionsprüfung — mehrere Wünsche am selben Slot sind okay, man spricht sich im Chat ab.
+  Sobald der Tag ins 3-Tage-Fenster rutscht, macht man daraus im Kalender eine echte Buchung.
+
+Setup: zusätzlich [`supabase-setup-wochenplan.sql`](supabase-setup-wochenplan.sql) im
+SQL Editor ausführen.
 
 ## Regeln
 
@@ -46,6 +54,13 @@ Drei druckfertige Poster (A4, JPG) liegen im Ordner und verlinken auf die App-UR
 [`qr-poster-frisch.jpg`](qr-poster-frisch.jpg). Alle QR-Codes sind decodier-geprüft.
 Neu erzeugen (z.B. nach URL-Änderung): `python make_qr_posters.py` (braucht `qrcode` + `pillow`).
 Die URL steht oben im Skript.
+
+## Admin-Statistik
+
+Im Admin-Bereich zeigt eine Tabelle pro Nutzer: Anzahl Buchungen, Gesamtstunden
+(mit Balken-Vergleich), Anzahl Wochenwünsche und letzte Aktivität — damit sich die
+Nutzung im Haus fair beobachten und bei Bedarf ansprechen lässt. Setup: zusätzlich
+[`supabase-migration-stats.sql`](supabase-migration-stats.sql) im SQL Editor ausführen.
 
 ## Sicherheit
 

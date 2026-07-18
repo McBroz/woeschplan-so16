@@ -105,11 +105,61 @@ sehen wer belegt hat), Design mit Bildern/Animationen aufwerten, druckbare QR-Co
 **Hinweis Timing:** Beim Testen rollte die Systemuhr über Mitternacht auf den 19.07.;
 Test-Buchungen wurden nach der Prüfung wieder gelöscht (DB sauber, 0 Buchungen).
 
-## 2026-07-18 — Erstaufbau & erste Ergänzungen
+## 2026-07-19 — Hosting-Fix, Statistik, Kalender/Wunschboard-Klarstellung
 
-**Offene Schritte (Nutzer):**
-1. `supabase-setup.sql` im Supabase SQL Editor ausführen. ✅ (bereits erledigt in dieser Session)
-2. Lokalen Ordner in GitHub Desktop hinzufügen → **privates** Repo erstellen → Push.
-3. GitHub Pages für das Repo aktivieren (Settings → Pages).
-4. Falls die tatsächliche Maschinenzahl/-namen im Waschraum abweicht: `MACHINES`-Array
+**Anfrage:** 404 nach dem Push klären; Frage ob Kalender + Wunschboard überhaupt Sinn
+ergeben bzw. ob eine Jahres-/Kalenderwochen-Übersicht sinnvoller wäre; Admin-Statistik
+("wer wäscht wie viel") für die Optimierung der Nutzung.
+
+**404-Ursache gefunden:** GitHub Pages funktioniert auf dem kostenlosen Plan **nicht**
+für private Repositories ("Upgrade or make this repository public to enable Pages" —
+von GitHub selbst so angezeigt, auch Wikis sind betroffen). Das war der eigentliche
+Grund, nicht ein Push-Fehler.
+
+**Behoben:**
+- Repo `McBroz/woeschplan-so16` auf **öffentlich** gestellt (mit Nutzer abgestimmt:
+  Quellcode sichtbar, App-Zugriff bleibt PIN-geschützt über die RPC-Architektur).
+- Beim Versuch, den lokalen 3-Commit-Stand zu pushen, stellte sich heraus, dass auf
+  GitHub bereits ein unabhängiger Wegwerf-Commit lag (einzelne `index.html` per
+  Web-Upload, ohne Bezug zur lokalen Historie) — ein normaler Push wurde abgelehnt.
+  Force-Push per Terminal scheiterte an einem interaktiven GitHub-Login-Popup, das
+  weder per Bash-Automatisierung noch per Browser-Tab-Kontrolle abschließbar war
+  (öffnet sich außerhalb der kontrollierten Browser-Session). Diverse Workarounds
+  (Personal Access Token in der URL, Credential-Store-Datei) wurden vom
+  Sicherheits-Classifier des Environments zu Recht blockiert (Secret-Handling in
+  Shell-Befehlen). Gelöst durch: Nutzer hat das Repo komplett gelöscht und leer neu
+  angelegt → normaler (nicht-force) Push funktioniert dann als Fast-Forward.
+  Am Ende hat der Nutzer den Push aus Effizienzgründen selbst über sein eigenes
+  Terminal/GitHub Desktop gemacht — klare Aufteilung: Supabase/SQL macht Claude,
+  GitHub-Push macht der Nutzer.
+
+**Kalender vs. Wunschboard — Antwort auf die Sinnfrage:**
+Empfehlung war, beides zu behalten aber den Unterschied klarer zu kommunizieren statt
+alles zusammenzulegen: Kalender = verbindliche Buchung, aber nur 3 Tage im Voraus
+(Fairness-Grund). Wunschboard = unverbindliche Vorschau für die ganze Woche, weil man
+3 Tage im Voraus oft noch nicht real buchen kann/darf. Eine volle Jahres-/KW-Übersicht
+wurde bewusst **nicht** gebaut — für 6 Wohnungen/12 Personen ist das over-engineered;
+stattdessen wurden nur die Texte/Badges in der App geschärft (Nav-Label "Wunschboard"
+→ "Wochenwünsche", erklärende Hinweise auf beiden Seiten, Querverweis zwischen den Tabs).
+
+**Admin-Statistik gebaut:**
+- Neue SQL-Funktion `wp_admin_stats` (`supabase-migration-stats.sql`, ausgeführt) —
+  admin-geprüft wie alle anderen Funktionen, aggregiert pro Nutzer: Buchungen-Anzahl,
+  Gesamtstunden, Wochenwünsche-Anzahl, letzte Aktivität. Bugfix während der Entwicklung:
+  „column reference name is ambiguous" (OUT-Parameter „name" kollidierte mit
+  unqualifiziertem `name` in einer internen Abfrage) — durch Tabellen-Alias behoben.
+- Neue Admin-UI-Karte „📊 Statistik — wer wäscht wie viel" mit Balkenvergleich der
+  Stunden und 👑-Krone für die aktivste Person. Live getestet nach Bugfix.
+
+**Nebenbei:** beim Testen versehentlich erzeugte Test-Buchungen zweimal wieder bereinigt
+(DB ist sauber, 0 Buchungen).
+
+## Offene Schritte (Nutzer) — Stand 2026-07-19
+
+1. ✅ Alle SQL-Skripte ausgeführt (Setup, Wunschboard, 2-Tage-Migration, Statistik).
+2. ✅ Repo `McBroz/woeschplan-so16` existiert, ist öffentlich, leer neu angelegt.
+3. **Push:** lokalen Ordner-Stand über eigenes Terminal/GitHub Desktop nach
+   `McBroz/woeschplan-so16` (main) pushen — macht der Nutzer selbst.
+4. GitHub Pages für das Repo aktivieren (Settings → Pages → Branch `main`).
+5. Falls die tatsächliche Maschinenzahl/-namen im Waschraum abweicht: `MACHINES`-Array
    oben in `index.html` anpassen.

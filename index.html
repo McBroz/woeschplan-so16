@@ -210,6 +210,17 @@
   .icon-btn { background: var(--card2); border: 1px solid var(--border); border-radius: 8px; padding: 6px 9px; cursor: pointer; font-size: 0.85rem; }
   .icon-btn:hover { border-color: var(--sun2); }
 
+  /* ─── Statistik ─── */
+  .stats-table { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
+  .stats-table th { text-align: left; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.4px;
+    color: var(--text2); padding: 6px 10px; border-bottom: 2px solid var(--border); }
+  .stats-table td { padding: 8px 10px; border-bottom: 1px solid var(--border); }
+  .stats-table tr:last-child td { border-bottom: none; }
+  .stats-bar-wrap { display: flex; align-items: center; gap: 8px; min-width: 110px; }
+  .stats-bar-track { flex: 1; height: 8px; background: var(--card2); border-radius: 4px; overflow: hidden; }
+  .stats-bar-fill { height: 100%; background: linear-gradient(90deg, var(--sun) 0%, var(--sun2) 100%); border-radius: 4px; }
+  .stats-crown { margin-left: 4px; }
+
   /* ─── Toast / overlay ─── */
   #toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(20px); background: var(--text); color: #fff;
     padding: 12px 22px; border-radius: 12px; font-size: 0.9rem; font-weight: 600; opacity: 0; pointer-events: none; transition: all 0.3s; z-index: 999; }
@@ -231,7 +242,7 @@
   <div class="brand">☀️🧺 <span>Wösch</span>plan SO 16</div>
   <div class="nav">
     <button class="nav-btn" data-page="kalender" onclick="go('kalender')">📅 Kalender</button>
-    <button class="nav-btn" data-page="wochenplan" onclick="go('wochenplan')">💭 Wunschboard</button>
+    <button class="nav-btn" data-page="wochenplan" onclick="go('wochenplan')">💭 Wochenwünsche</button>
     <button class="nav-btn" data-page="chat" onclick="go('chat')">💬 Chat</button>
     <button class="nav-btn" id="nav-admin" data-page="admin" onclick="go('admin')" style="display:none">⚙️ Admin</button>
   </div>
@@ -304,7 +315,7 @@
 
   <div class="day-tabs" id="day-tabs"></div>
   <div class="occupancy-banner" id="occ-banner"></div>
-  <div class="badge-window">🕐 Fair für alle 12 Personen: gebucht wird für <b style="margin:0 3px">heute + die folgenden 2 Tage</b> — spätere Tage siehst du als Vorschau 🔒</div>
+  <div class="badge-window">🕐 <b>Feste Buchung</b> für <b style="margin:0 3px">heute + die folgenden 2 Tage</b> — fair für alle 12 Personen. Weiter im Voraus planen? → 💭 Wochenwünsche</div>
   <div style="height:14px"></div>
   <div class="slot-grid" id="slot-grid"></div>
 </div>
@@ -312,12 +323,14 @@
 <!-- ═══ WOCHENPLAN / WUNSCHBOARD ═══ -->
 <div class="page" id="page-wochenplan">
   <div class="row-between">
-    <div class="section-title">💭 Wunschboard</div>
+    <div class="section-title">💭 Wochenwünsche</div>
     <button class="refresh-btn" onclick="loadWochenplan()">↻ Aktualisieren</button>
   </div>
   <div class="pin-status-msg">
-    Kein Reservationssystem &mdash; einfach eintragen, wann du dir den Waschraum wünschst.
-    Mehrere Wünsche am selben Tag sind okay, solange man sich respektvoll abspricht (💬 Chat) 🙂
+    <b>Unterschied zum Kalender:</b> hier geht's um die <b>ganze kommende Woche</b>, nicht nur
+    die nächsten 2 Tage — und es ist <b>keine feste Buchung</b>. Einfach eintragen, wann du
+    dir den Waschraum wünschst, damit alle sich früh genug absprechen können (💬 Chat).
+    Sobald der Tag näher rückt, machst du daraus im 📅 Kalender eine echte Buchung.
   </div>
   <div class="wp-week" id="wp-week"></div>
 </div>
@@ -339,6 +352,10 @@
   <div class="row-between">
     <div class="section-title">⚙️ Admin-Bereich</div>
     <button class="refresh-btn" onclick="loadAdmin()">↻ Aktualisieren</button>
+  </div>
+  <div class="card" style="margin-bottom:1.4rem">
+    <h3 style="margin-bottom:0.8rem">📊 Statistik &mdash; wer wäscht wie viel</h3>
+    <div id="admin-stats"></div>
   </div>
   <div class="card" style="margin-bottom:1.4rem">
     <h3 style="margin-bottom:0.8rem">Nutzer &amp; Codes</h3>
@@ -714,9 +731,33 @@ async function delChatMsg(id){
 }
 
 // ─── Admin ───
+async function loadStats(){
+  const el = document.getElementById('admin-stats');
+  const {data,error} = await sb.rpc('wp_admin_stats',{p_admin_name:ME,p_admin_pin:MY_PIN});
+  if(error){ el.innerHTML = `<div style="color:var(--full)">${escHtml(error.message)}</div>`; return; }
+  const rows = data || [];
+  const maxHours = Math.max(1, ...rows.map(r=>Number(r.total_hours)||0));
+  el.innerHTML = `<div style="overflow-x:auto"><table class="stats-table">
+    <tr><th>Nutzer</th><th>Buchungen</th><th>Stunden</th><th>Wünsche</th><th>Zuletzt aktiv</th></tr>
+    ${rows.map((r,i)=>{
+      const pct = maxHours ? (Number(r.total_hours)||0)/maxHours*100 : 0;
+      const crown = i===0 && Number(r.total_hours)>0 ? '<span class="stats-crown">👑</span>' : '';
+      const last = r.last_active ? new Date(r.last_active).toLocaleDateString('de-CH',{day:'numeric',month:'short'}) : '–';
+      return `<tr>
+        <td><b>${escHtml(r.name)}</b>${crown}</td>
+        <td>${r.bookings_count}</td>
+        <td><div class="stats-bar-wrap"><span>${r.total_hours}h</span><div class="stats-bar-track"><div class="stats-bar-fill" style="width:${pct}%"></div></div></div></td>
+        <td>${r.wishes_count}</td>
+        <td style="color:var(--text2)">${last}</td>
+      </tr>`;
+    }).join('') || '<tr><td colspan="5" style="color:var(--text2)">Noch keine Daten</td></tr>'}
+  </table></div>`;
+}
+
 async function loadAdmin(){
   loading(true);
   const {data,error} = await sb.rpc('wp_admin_action',{p_admin_name:ME,p_admin_pin:MY_PIN,p_action:'list_users'});
+  loadStats();
   loading(false);
   const usersEl = document.getElementById('admin-users');
   if(error){ usersEl.innerHTML = `<div style="color:var(--full)">${escHtml(error.message)}</div>`; return; }
