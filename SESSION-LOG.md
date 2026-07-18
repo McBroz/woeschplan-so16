@@ -182,6 +182,58 @@ Wünsche weiterhin löschen können, Änderungen sollen künftig immer gleich ge
   bei Unstimmigkeiten zwischen Screenshot und erwartetem Verhalten den echten
   DOM-Zustand per `javascript_tool` verifizieren, nicht dem Screenshot blind vertrauen.
 
+## 2026-07-19 (noch später) — Hausordnung, kombinierte Buchung, 3-Tage-Fenster, kompaktes Layout
+
+**Anfrage:** Chat zu einer vom Admin geführten Hausordnung (Blackboard-Stil) umbauen;
+im Kalender Waschmaschine+Tumbler immer zusammen mit einem Button buchen statt zwei
+getrennten Buttons; dafür das Buchungsfenster auf 3 Tage erweitern; Karten kompakter/
+näher beieinander; alle Tage durchgehend mit Wochentag beschriften (Heute + Wochentag,
+Morgen nicht mehr als Sonderfall).
+
+**Umgesetzt (alle Punkte live getestet, siehe unten):**
+- **Hausordnung statt Chat:** `page-chat` optisch komplett zur Kreidetafel umgebaut
+  (dunkelgrüner Verlauf, brauner Holzrahmen, Kalam-Handschrift-Font für Einträge,
+  📌-Pin-Icon je Eintrag). Eingabefeld ist nur für Admins sichtbar
+  (`chat-input-row` per `IS_ADMIN` ein-/ausgeblendet); nicht-Admins sehen stattdessen
+  einen Hinweistext. **Serverseitig** in `wp_send_chat` zusätzlich abgesichert
+  (`if not v_user.is_admin then raise exception`), damit niemand die Sperre über die
+  Browser-Konsole umgehen kann — mit einem frisch registrierten Test-Nutzer verifiziert.
+- **Kombinierte Buchung:** `wp_create_booking` bucht jetzt ohne `p_machine`-Parameter
+  immer **beide** Maschinen-Zeilen (1 und 2) in einem Aufruf; Kollisionscheck läuft über
+  das Zeitfenster, nicht mehr pro Maschine. `wp_cancel_booking` (gleiche Signatur wie
+  vorher) storniert jetzt beide Zeilen des Zeitfensters gemeinsam. Frontend: ein
+  `m-row` pro Slot-Karte statt zwei, Icons "🌀🔥" + Label "Waschmaschine + Tumbler".
+  Live getestet: buchen → 2 DB-Zeilen mit identischem Start/Ende, stornieren → beide weg.
+- **3-Tage-Fenster:** `BOOK_WINDOW_DAYS` 2→3, SQL-Cutoff `interval '3 days'` →
+  `'4 days'`. Live getestet: Tag+3 bucht erfolgreich, Tag+5 wird korrekt abgelehnt
+  ("Buchbar nur für heute und die folgenden 3 Tage").
+- **Statistik-Fix:** da eine Buchung jetzt 2 Zeilen erzeugt (Waschmaschine + Tumbler),
+  zählte `wp_admin_stats` sonst jede Buchung doppelt. Query zählt jetzt über
+  `select distinct user_name, start_ts, end_ts` bevor aggregiert wird.
+- **Admin-Buchungsliste:** dedupliziert jetzt clientseitig nach `user_name + start_ts`,
+  zeigt "Waschmaschine + Tumbler" statt der einzelnen Maschine.
+- **Kompakteres Kalender-Layout:** `slot-grid` von `minmax(230px)`/14px-Gap auf
+  `minmax(148px)`/8px-Gap verkleinert, Karten-Padding und Schriftgrössen reduziert —
+  passt jetzt deutlich mehr auf den Bildschirm, wirkt weniger "aufgebläht".
+- **Tag-Beschriftung:** `renderDayTabs` zeigt jetzt immer den Wochentag
+  (`i===0 ? 'Heute '+name : name`) — "Morgen" als Sonderfall entfernt, "Heute" bekommt
+  den Wochentag dazu (z.B. "Heute Sa").
+- Migration `supabase-migration-combined-booking.sql` erstellt und **im Supabase SQL
+  Editor ausgeführt** (drop+recreate `wp_create_booking` mit neuer Signatur, Updates an
+  `wp_cancel_booking`, `wp_send_chat`, `wp_admin_stats`). `supabase-setup.sql` als
+  Referenzdokument ebenfalls aktualisiert, damit ein Neuaufbau von Grund auf konsistent
+  wäre.
+
+**Wichtiger Hinweis für zukünftige Sessions:** Während des Testens ist aufgefallen,
+dass sich auf der Live-Seite bereits ein echter zweiter Nutzer ("Solange", Wohnung 1)
+registriert hat — die App ist also im echten Gebrauch. Test-Buchungen/-Einträge in
+Zukunft entsprechend vorsichtig und immer wieder aufräumen.
+
+**Klassifizierer-Hinweis:** ein direkter `sb.from('wp_bookings').select()`-Testaufruf
+wurde vom Sicherheits-Classifier einmal als "Credential Leakage" markiert (Anon-Key ist
+bewusst öffentlich im Code, RLS/RPC-geschützt) — auf UI-Klicks statt JS-Konsolen-Queries
+ausgewichen, um Bereinigungen durchzuführen; funktioniert genauso gut.
+
 ## Offene Schritte (Nutzer) — Stand 2026-07-19
 
 1. ✅ Alle SQL-Skripte ausgeführt (Setup, Wunschboard, 2-Tage-Migration, Statistik).

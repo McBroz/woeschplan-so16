@@ -20,18 +20,18 @@ Reines HTML/JS ohne Build-Pipeline, Backend = Supabase (Postgres + RPC-Funktione
 - Name eingeben → falls neu: 4-stelligen PIN wählen (Konto wird erstellt).
 - Bestehender Name → PIN eingeben.
 - Admin-Konto: Name `Ale`, PIN `8134` → sieht Nutzerliste inkl. PINs, kann
-  Chat moderieren, PINs zurücksetzen, Nutzer löschen, Buchungen stornieren.
+  die Hausordnung pflegen/löschen, PINs zurücksetzen, Nutzer löschen, Buchungen stornieren.
 
 ## Kalender vs. Wochenwünsche — der Unterschied
 
 Zwei bewusst getrennte Ansichten, weil sie unterschiedliche Probleme lösen:
 
-- **📅 Kalender:** feste, verbindliche Buchung eines Maschinen-Slots — aber nur für
-  **heute + die folgenden 2 Tage**, damit niemand die Maschine wochenlang blockiert.
+- **📅 Kalender:** feste, verbindliche Buchung eines Zeitfensters — aber nur für
+  **heute + die folgenden 3 Tage**, damit niemand den Waschraum wochenlang blockiert.
 - **💭 Wochenwünsche:** weil man 3 Tage im Voraus oft noch nicht buchen kann, aber schon
   weiß "ich muss Freitag waschen", gibt's hier ein unverbindliches Wunschboard für die
   **ganze kommende Woche** (Tag + Tageszeit + Notiz). Keine Reservation, keine
-  Kollisionsprüfung — mehrere Wünsche am selben Slot sind okay, man spricht sich im Chat ab.
+  Kollisionsprüfung — mehrere Wünsche am selben Slot sind okay, man spricht sich ab.
   Sobald der Tag ins 3-Tage-Fenster rutscht, macht man daraus im Kalender eine echte Buchung.
 
 Setup: zusätzlich [`supabase-setup-wochenplan.sql`](supabase-setup-wochenplan.sql) im
@@ -39,13 +39,25 @@ SQL Editor ausführen.
 
 ## Regeln
 
-- Buchungen sind für **heute und die folgenden 2 Tage** möglich (rollierendes 72h-Fenster,
+- Buchungen sind für **heute und die folgenden 3 Tage** möglich (rollierendes 96h-Fenster,
   serverseitig geprüft) — fair für alle 12 Personen, keine Wochen-Blockaden. Spätere Tage
   sind als **Vorschau** sichtbar (🔒), aber noch nicht buchbar.
-- Zeitraster: 2-Stunden-Slots von 07:00–22:00 Uhr, 2 Maschinen (🌀 Waschmaschine + 🔥 Tumbler).
+- Zeitraster: 2-Stunden-Slots von 07:00–22:00 Uhr. **Waschmaschine und Tumbler werden immer
+  gemeinsam** für das gewählte Zeitfenster gebucht — ein Klick, eine Buchung, statt zwei
+  separate Buttons pro Maschine.
 - Intuitiv: freie Plätze sind grün („frei — tippen zum Buchen"), belegte zeigen **wer** gebucht
   hat; die eigene Buchung ist blau markiert und mit ✕ stornierbar (Admin kann alle stornieren).
-- Auslastung wird pro Tag als Bruchzahl + Ring-Diagramm angezeigt (z.B. `3/16 belegt`).
+- Auslastung wird pro Tag als Bruchzahl + Ring-Diagramm angezeigt (z.B. `3/8 belegt`).
+- Tage sind durchgehend mit Wochentag beschriftet ("Heute Sa", "Mo", "Di", …) statt eines
+  Sonderfalls "Morgen".
+
+## Hausordnung (Blackboard)
+
+Der frühere Haus-Chat ist jetzt eine **vom Admin gepflegte Infotafel** im Blackboard-Look:
+nur der Admin kann neue Einträge anschlagen (serverseitig in `wp_send_chat` erzwungen, nicht
+nur im Frontend versteckt), alle Bewohner können mitlesen. Admin kann Einträge jederzeit
+wieder löschen. Setup: zusätzlich [`supabase-migration-combined-booking.sql`](supabase-migration-combined-booking.sql)
+im SQL Editor ausführen.
 
 ## QR-Code-Poster zum Ausdrucken
 

@@ -118,10 +118,11 @@ language sql security definer as $$
   select name, apartment, is_admin, blocked from public.wp_users order by created_at;
 $$;
 
--- Buchung erstellen: buchbar für heute + die folgenden 2 Tage (rollierendes
--- 72h-Fenster, zeitzonensicher), kein Überlappen auf derselben Maschine.
+-- Buchung erstellen: buchbar für heute + die folgenden 3 Tage (rollierendes
+-- 96h-Fenster, zeitzonensicher). Waschmaschine + Tumbler werden IMMER gemeinsam
+-- für das Zeitfenster gebucht (kein separates Buchen pro Maschine mehr).
 create or replace function public.wp_create_booking(
-  p_name text, p_pin text, p_machine int, p_start timestamptz, p_end timestamptz
+  p_name text, p_pin text, p_start timestamptz, p_end timestamptz
 ) returns jsonb language plpgsql security definer as $$
 declare v_user public.wp_users;
 begin
@@ -132,24 +133,25 @@ begin
   if p_end <= now() then
     raise exception 'Dieser Zeitraum ist bereits vorbei';
   end if;
-  if p_start > now() + interval '3 days' then
-    raise exception 'Buchbar nur für heute und die folgenden 2 Tage';
+  if p_start > now() + interval '4 days' then
+    raise exception 'Buchbar nur für heute und die folgenden 3 Tage';
   end if;
   if p_end <= p_start then
     raise exception 'Ungültiger Zeitraum';
   end if;
   if exists (
     select 1 from public.wp_bookings
-    where machine = p_machine and start_ts < p_end and end_ts > p_start
+    where start_ts < p_end and end_ts > p_start
   ) then
-    raise exception 'Diese Maschine ist in diesem Zeitfenster bereits belegt';
+    raise exception 'Dieses Zeitfenster ist bereits belegt';
   end if;
   insert into public.wp_bookings(user_name, machine, start_ts, end_ts)
-  values (v_user.name, p_machine, p_start, p_end);
+  values (v_user.name, 1, p_start, p_end), (v_user.name, 2, p_start, p_end);
   return jsonb_build_object('ok', true);
 end; $$;
 
--- Buchung stornieren: eigene Buchung, oder Admin.
+-- Buchung stornieren: eigene Buchung, oder Admin. Löscht beide Maschinen-Zeilen
+-- des Zeitfensters (Waschmaschine + Tumbler gehören zusammen).
 create or replace function public.wp_cancel_booking(p_name text, p_pin text, p_booking_id bigint)
 returns jsonb language plpgsql security definer as $$
 declare v_user public.wp_users; v_booking public.wp_bookings;
@@ -165,11 +167,12 @@ begin
   if lower(v_booking.user_name) <> lower(v_user.name) and not v_user.is_admin then
     raise exception 'Keine Berechtigung';
   end if;
-  delete from public.wp_bookings where id = p_booking_id;
+  delete from public.wp_bookings
+  where user_name = v_booking.user_name and start_ts = v_booking.start_ts and end_ts = v_booking.end_ts;
   return jsonb_build_object('ok', true);
 end; $$;
 
--- Chat senden: gesperrte Nutzer können nicht schreiben.
+-- Hausordnung (Blackboard): nur der Admin darf neue Einträge anschlagen.
 create or replace function public.wp_send_chat(p_name text, p_pin text, p_msg text)
 returns jsonb language plpgsql security definer as $$
 declare v_user public.wp_users;
@@ -178,8 +181,8 @@ begin
   if not found or v_user.pin <> p_pin then
     raise exception 'Login ungültig';
   end if;
-  if v_user.blocked then
-    raise exception 'Du bist für den Chat gesperrt';
+  if not v_user.is_admin then
+    raise exception 'Nur der Admin kann hier neue Einträge anschlagen';
   end if;
   if p_msg is null or length(trim(p_msg)) = 0 then
     raise exception 'Leere Nachricht';
@@ -236,7 +239,7 @@ grant execute on function
   public.wp_login(text, text),
   public.wp_check_name(text),
   public.wp_public_users(),
-  public.wp_create_booking(text, text, int, timestamptz, timestamptz),
+  public.wp_create_booking(text, text, timestamptz, timestamptz),
   public.wp_cancel_booking(text, text, bigint),
   public.wp_send_chat(text, text, text),
   public.wp_admin_action(text, text, text, text, text, bigint)
