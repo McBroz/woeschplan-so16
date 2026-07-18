@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>☀️ Wöschplan SO 16 — Session Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --sun: #FFB627; --sun2: #FF8C42; --sky: #2E86AB; --cream: #FFF8EC;
+    --card: #FFFFFF; --card2: #FFF3DE; --text: #3A2E1F; --text2: #8A7860;
+    --border: rgba(58,46,31,0.10); --ok: #4CAF6D; --warn: #FF8C42;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: radial-gradient(circle at 90% -5%, rgba(255,182,39,0.5) 0%, rgba(255,182,39,0) 45%),
+    linear-gradient(180deg, #FFF3DE 0%, #FFF8EC 40%, #FDF6ED 100%); color: var(--text);
+    font-family: 'Inter', sans-serif; min-height: 100vh; }
+  h1,h2,h3 { font-family: 'Baloo 2', sans-serif; }
+  .wrap { max-width: 980px; margin: 0 auto; padding: 2.6rem 1.6rem 3rem; }
+  h1 { font-size: 2.1rem; font-weight: 800; margin-bottom: 4px; }
+  h1 span { color: var(--sun2); }
+  .sub { color: var(--text2); margin-bottom: 2rem; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px,1fr)); gap: 14px; margin-bottom: 2rem; }
+  .card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 1.3rem 1.4rem;
+    box-shadow: 0 8px 24px rgba(180,120,40,0.08); }
+  .card h3 { font-size: 0.95rem; margin-bottom: 8px; display: flex; align-items: center; gap: 6px; }
+  .stat { font-size: 1.7rem; font-weight: 800; }
+  .stat.ok { color: var(--ok); }
+  .stat.warn { color: var(--warn); }
+  ul { padding-left: 1.1rem; font-size: 0.92rem; color: var(--text); line-height: 1.7; }
+  .section { margin-bottom: 2rem; }
+  .pill { display: inline-block; background: var(--card2); color: var(--text); border-radius: 8px; padding: 3px 10px;
+    font-size: 0.78rem; font-weight: 700; margin-right: 6px; }
+  .pill.done { background: rgba(76,175,109,0.15); color: var(--ok); }
+  .pill.todo { background: rgba(255,140,66,0.15); color: var(--sun2); }
+  code { background: var(--card2); padding: 2px 6px; border-radius: 6px; font-size: 0.88rem; }
+  a { color: var(--sky); }
+  table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+  td, th { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--border); }
+  th { color: var(--text2); text-transform: uppercase; font-size: 0.72rem; letter-spacing: 0.4px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>☀️ Wösch<span>plan</span> SO 16 — Session Dashboard</h1>
+  <div class="sub">Statusübersicht des Aufbaus vom 2026-07-18 · siehe auch <a href="SESSION-LOG.md">SESSION-LOG.md</a> und <a href="README.md">README.md</a></div>
+
+  <div class="grid">
+    <div class="card"><h3>🏠 Haus</h3><div class="stat">6 Wohnungen</div><div style="color:var(--text2);font-size:0.85rem">max. 12 Personen</div></div>
+    <div class="card"><h3>🧺 Maschinen</h3><div class="stat">2</div><div style="color:var(--text2);font-size:0.85rem">Waschmaschine + Tumbler</div></div>
+    <div class="card"><h3>⏱️ Buchungsfenster</h3><div class="stat warn">5 Std.</div><div style="color:var(--text2);font-size:0.85rem">max. Vorausbuchung</div></div>
+    <div class="card"><h3>🔐 Sicherheit</h3><div class="stat ok">RPC-only</div><div style="color:var(--text2);font-size:0.85rem">kein direktes Tabellen-CRUD</div></div>
+  </div>
+
+  <div class="section">
+    <h2 style="font-size:1.3rem;margin-bottom:0.8rem">📦 Erstellte Dateien</h2>
+    <table>
+      <tr><th>Datei</th><th>Zweck</th><th>Status</th></tr>
+      <tr><td><code>index.html</code></td><td>Haupt-App (Login, Kalender, Chat, Admin)</td><td><span class="pill done">fertig</span></td></tr>
+      <tr><td><code>supabase-setup.sql</code></td><td>Tabellen, RLS, RPC-Funktionen, Admin-Konto</td><td><span class="pill done">fertig</span></td></tr>
+      <tr><td><code>README.md</code></td><td>Setup-Anleitung</td><td><span class="pill done">fertig</span></td></tr>
+      <tr><td><code>SESSION-LOG.md</code></td><td>Bau-Protokoll &amp; Entscheidungen</td><td><span class="pill done">fertig</span></td></tr>
+      <tr><td><code>session-dashboard.html</code></td><td>diese Seite</td><td><span class="pill done">fertig</span></td></tr>
+    </table>
+  </div>
+
+  <div class="section">
+    <h2 style="font-size:1.3rem;margin-bottom:0.8rem">✅ Offene Schritte für dich</h2>
+    <ul>
+      <li><span class="pill todo">Supabase</span> <code>supabase-setup.sql</code> im SQL Editor des bestehenden Tippspiel-Projekts ausführen</li>
+      <li><span class="pill todo">GitHub</span> Ordner in GitHub Desktop hinzufügen → Repository erstellen (Visibility: <strong>Private</strong>) → Push</li>
+      <li><span class="pill todo">Pages</span> GitHub Pages im Repo aktivieren, damit der QR-Code/Link funktioniert</li>
+      <li><span class="pill todo">Prüfen</span> Anzahl/Namen der Waschmaschinen im <code>MACHINES</code>-Array in <code>index.html</code> falls abweichend anpassen</li>
+    </ul>
+  </div>
+
+  <div class="section">
+    <h2 style="font-size:1.3rem;margin-bottom:0.8rem">🔑 Zugänge</h2>
+    <table>
+      <tr><th>Was</th><th>Wert</th></tr>
+      <tr><td>Admin-Login</td><td>Name <code>Ale</code>, PIN <code>8134</code></td></tr>
+      <tr><td>Supabase-Projekt</td><td><a href="https://supabase.com/dashboard/project/tjrybgrdjvntdbjdlyio" target="_blank">tjrybgrdjvntdbjdlyio</a> (geteilt mit WM-Tippspiel, eigene Tabellen <code>wp_*</code>)</td></tr>
+    </table>
+  </div>
+</div>
+</body>
+</html>

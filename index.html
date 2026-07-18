@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🧺☀️ Wöschplan SO 16</title>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  :root {
+    --sun: #FFB627;
+    --sun2: #FF8C42;
+    --sky: #2E86AB;
+    --sky-light: #6EC6E8;
+    --cream: #FFF8EC;
+    --card: #FFFFFF;
+    --card2: #FFF3DE;
+    --text: #3A2E1F;
+    --text2: #8A7860;
+    --border: rgba(58,46,31,0.10);
+    --radius: 16px;
+    --ok: #4CAF6D;
+    --warn: #FF8C42;
+    --full: #E85D5D;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background:
+      radial-gradient(circle at 90% -5%, rgba(255,182,39,0.55) 0%, rgba(255,182,39,0) 45%),
+      linear-gradient(180deg, #FFF3DE 0%, #FFF8EC 40%, #FDF6ED 100%);
+    color: var(--text); font-family: 'Inter', sans-serif; min-height: 100vh;
+  }
+  h1,h2,h3,.brand,.page-title,.section-title { font-family: 'Baloo 2', sans-serif; }
+
+  /* ─── Sun decoration ─── */
+  .sun-deco { position: fixed; top: -90px; right: -90px; width: 260px; height: 260px; border-radius: 50%;
+    background: radial-gradient(circle, var(--sun) 0%, var(--sun2) 60%, rgba(255,140,66,0) 72%);
+    filter: blur(2px); z-index: 0; pointer-events: none; opacity: 0.85; animation: sunPulse 6s ease-in-out infinite; }
+  @keyframes sunPulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.06); } }
+
+  /* ─── Header ─── */
+  header { background: rgba(255,255,255,0.75); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--border); padding: 0 1.6rem; display: flex; align-items: center; justify-content: space-between;
+    height: 68px; position: sticky; top: 0; z-index: 100; box-shadow: 0 4px 20px rgba(180,120,40,0.08); }
+  .brand { font-size: 1.5rem; font-weight: 800; display: flex; align-items: center; gap: 8px; color: var(--text); }
+  .brand span { color: var(--sun2); }
+  .nav { display: flex; gap: 0.4rem; flex-wrap: wrap; }
+  .nav-btn { background: transparent; border: 1px solid var(--border); color: var(--text2); padding: 9px 16px;
+    border-radius: 10px; cursor: pointer; font-size: 0.92rem; font-weight: 600; transition: all 0.2s; white-space: nowrap; }
+  .nav-btn:hover, .nav-btn.active { background: linear-gradient(135deg, var(--sun) 0%, var(--sun2) 100%); border-color: transparent; color: #fff; }
+  .user-badge { font-size: 0.88rem; color: var(--text2); white-space: nowrap; }
+  .user-badge strong { color: var(--text); }
+
+  /* ─── Pages ─── */
+  .page { display: none; max-width: 980px; margin: 0 auto; padding: 2.4rem 1.6rem 3rem; position: relative; z-index: 1; }
+  .page.active { display: block; animation: fadeUp 0.3s ease; }
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+  #page-login { max-width: 440px; padding-top: 4rem; }
+
+  .card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.8rem;
+    box-shadow: 0 10px 30px rgba(180,120,40,0.10); }
+  .page-title { font-size: 1.9rem; font-weight: 800; margin-bottom: 0.3rem; }
+  .page-title span { color: var(--sun2); }
+  .page-sub { color: var(--text2); font-size: 0.9rem; margin-bottom: 1.6rem; line-height: 1.6; }
+
+  .form-group { margin-bottom: 1.1rem; }
+  label { display: block; font-size: 0.76rem; color: var(--text2); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600; }
+  input[type=text], input[type=password], input[type=number] { width: 100%; background: var(--cream); border: 1px solid var(--border);
+    border-radius: 10px; padding: 11px 14px; color: var(--text); font-size: 0.96rem; outline: none; transition: border 0.2s; }
+  input:focus { border-color: var(--sun2); }
+  .btn { background: linear-gradient(135deg, var(--sun) 0%, var(--sun2) 100%); border: none; color: #fff; padding: 12px 20px;
+    border-radius: 10px; font-size: 0.92rem; font-weight: 700; cursor: pointer; transition: all 0.2s; width: 100%;
+    box-shadow: 0 4px 16px rgba(255,140,66,0.35); }
+  .btn:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(255,140,66,0.5); }
+  .btn-sm { width: auto; padding: 9px 18px; font-size: 0.88rem; }
+  .btn-secondary { background: var(--card2); border: 1px solid var(--border); color: var(--text); margin-top: 8px; box-shadow: none; }
+  .btn-secondary:hover { border-color: var(--sun2); transform: none; box-shadow: none; }
+  .btn-danger { background: linear-gradient(135deg, #F17C7C 0%, var(--full) 100%); box-shadow: 0 4px 16px rgba(232,93,93,0.3); }
+  .err { color: var(--full); font-size: 0.84rem; margin-top: 0.8rem; display: none; }
+  .pin-field { letter-spacing: 10px; font-size: 1.6rem; text-align: center; font-weight: 700; padding: 14px; }
+  .pin-status-msg { background: rgba(255,140,66,0.08); border: 1px solid rgba(255,140,66,0.25); border-radius: 10px;
+    padding: 12px 14px; font-size: 0.85rem; color: var(--text2); margin-bottom: 1.4rem; line-height: 1.5; }
+
+  .qr-box { display: flex; flex-direction: column; align-items: center; gap: 10px; margin-top: 1.6rem; padding-top: 1.4rem; border-top: 1px dashed var(--border); }
+  .qr-box img { border-radius: 12px; border: 4px solid #fff; box-shadow: 0 6px 20px rgba(180,120,40,0.18); }
+  .qr-box small { color: var(--text2); text-align: center; }
+
+  .section-title { font-size: 1.7rem; font-weight: 800; margin-bottom: 1.1rem; }
+  .refresh-btn { background: var(--card2); border: 1px solid var(--border); color: var(--text2); padding: 8px 15px;
+    border-radius: 10px; cursor: pointer; font-size: 0.86rem; font-weight: 600; white-space: nowrap; }
+  .refresh-btn:hover { border-color: var(--sun2); color: var(--sun2); }
+  .row-between { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-bottom: 1.2rem; flex-wrap: wrap; }
+
+  /* ─── Kalender ─── */
+  .day-tabs { display: flex; gap: 6px; overflow-x: auto; margin-bottom: 1.4rem; padding-bottom: 4px; }
+  .day-tab { flex: 0 0 auto; background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 10px 14px;
+    cursor: pointer; text-align: center; min-width: 74px; transition: all 0.15s; }
+  .day-tab.active { background: linear-gradient(135deg, var(--sun) 0%, var(--sun2) 100%); border-color: transparent; color: #fff; }
+  .day-tab .dt-name { font-size: 0.72rem; text-transform: uppercase; opacity: 0.8; font-weight: 700; }
+  .day-tab .dt-num { font-size: 1.15rem; font-weight: 800; }
+
+  .occupancy-banner { display: flex; align-items: center; gap: 16px; background: var(--card); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 1.1rem 1.4rem; margin-bottom: 1.4rem; box-shadow: 0 8px 24px rgba(180,120,40,0.08); }
+  .ring { width: 64px; height: 64px; flex-shrink: 0; }
+  .occupancy-text { flex: 1; }
+  .occupancy-frac { font-size: 1.6rem; font-weight: 800; }
+  .occupancy-label { font-size: 0.82rem; color: var(--text2); }
+
+  .slot-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 12px; }
+  .slot-card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 0.9rem 1rem;
+    box-shadow: 0 6px 20px rgba(180,120,40,0.08); transition: transform 0.15s; }
+  .slot-card:hover { transform: translateY(-2px); }
+  .slot-time { font-weight: 800; font-size: 1rem; margin-bottom: 6px; }
+  .slot-machines { display: flex; gap: 6px; margin-bottom: 8px; }
+  .m-pill { flex: 1; text-align: center; font-size: 0.72rem; font-weight: 700; padding: 5px 4px; border-radius: 8px; }
+  .m-free { background: rgba(76,175,109,0.14); color: var(--ok); }
+  .m-taken { background: rgba(232,93,93,0.14); color: var(--full); }
+  .m-mine { background: rgba(46,134,171,0.16); color: var(--sky); }
+  .slot-booked-by { font-size: 0.72rem; color: var(--text2); min-height: 1.2em; }
+  .slot-past { opacity: 0.4; filter: grayscale(0.6); }
+  .slot-toofar { opacity: 0.55; }
+  .badge-window { display: inline-block; font-size: 0.62rem; background: rgba(46,134,171,0.12); color: var(--sky);
+    border-radius: 6px; padding: 2px 6px; margin-left: 4px; font-weight: 700; }
+
+  /* ─── Chat ─── */
+  .chat-box { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden;
+    box-shadow: 0 8px 24px rgba(180,120,40,0.08); }
+  #chat-msgs { height: 420px; overflow-y: auto; padding: 1rem 1.2rem; display: flex; flex-direction: column; gap: 10px; }
+  .chat-msg { max-width: 78%; padding: 8px 12px; border-radius: 12px; background: var(--card2); font-size: 0.9rem; position: relative; }
+  .chat-msg.me { align-self: flex-end; background: linear-gradient(135deg, var(--sky-light) 0%, var(--sky) 100%); color: #fff; }
+  .chat-msg .cm-name { font-size: 0.7rem; font-weight: 700; opacity: 0.75; display: block; margin-bottom: 2px; }
+  .chat-msg .cm-del { position: absolute; top: -8px; right: -8px; background: var(--full); color: #fff; border: none;
+    border-radius: 50%; width: 20px; height: 20px; font-size: 0.7rem; cursor: pointer; line-height: 20px; }
+  .chat-input-row { display: flex; gap: 8px; padding: 0.9rem; border-top: 1px solid var(--border); }
+  .chat-input-row input { flex: 1; }
+  .chat-input-row button { width: auto; padding: 11px 20px; }
+
+  /* ─── Admin ─── */
+  .user-row { display: flex; align-items: center; gap: 10px; padding: 0.7rem 0.9rem; border-bottom: 1px solid var(--border); flex-wrap: wrap; }
+  .user-row:last-child { border-bottom: none; }
+  .user-name { font-weight: 700; }
+  .user-pin { font-family: monospace; background: var(--card2); padding: 2px 8px; border-radius: 6px; font-size: 0.85rem; letter-spacing: 2px; }
+  .admin-badge { font-size: 0.68rem; background: rgba(255,140,66,0.15); color: var(--sun2); border: 1px solid rgba(255,140,66,0.35);
+    border-radius: 6px; padding: 1px 6px; margin-left: 4px; font-weight: 700; }
+  .blocked-badge { font-size: 0.68rem; background: rgba(138,120,96,0.15); color: var(--text2); border: 1px solid rgba(138,120,96,0.3);
+    border-radius: 6px; padding: 1px 6px; margin-left: 4px; }
+  .row-actions { margin-left: auto; display: flex; gap: 6px; }
+  .icon-btn { background: var(--card2); border: 1px solid var(--border); border-radius: 8px; padding: 6px 9px; cursor: pointer; font-size: 0.85rem; }
+  .icon-btn:hover { border-color: var(--sun2); }
+
+  /* ─── Toast / overlay ─── */
+  #toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(20px); background: var(--text); color: #fff;
+    padding: 12px 22px; border-radius: 12px; font-size: 0.9rem; font-weight: 600; opacity: 0; pointer-events: none; transition: all 0.3s; z-index: 999; }
+  #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+  #toast.e { background: var(--full); }
+  #overlay { position: fixed; inset: 0; background: rgba(255,248,236,0.7); display: none; align-items: center; justify-content: center; z-index: 998; }
+  .spinner { width: 44px; height: 44px; border: 4px solid var(--card2); border-top-color: var(--sun2); border-radius: 50%; animation: spin 0.8s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  footer { text-align: center; color: var(--text2); font-size: 0.78rem; padding: 2rem 1rem; }
+</style>
+</head>
+<body>
+<div class="sun-deco"></div>
+<div id="overlay"><div class="spinner"></div></div>
+<div id="toast"></div>
+
+<header id="app-header" style="display:none">
+  <div class="brand">☀️🧺 <span>Wösch</span>plan SO 16</div>
+  <div class="nav">
+    <button class="nav-btn" data-page="kalender" onclick="go('kalender')">📅 Kalender</button>
+    <button class="nav-btn" data-page="chat" onclick="go('chat')">💬 Chat</button>
+    <button class="nav-btn" id="nav-admin" data-page="admin" onclick="go('admin')" style="display:none">⚙️ Admin</button>
+  </div>
+  <div class="user-badge">Hoi <strong id="who">–</strong> <button class="refresh-btn" onclick="logout()" style="margin-left:10px">Abmelden</button></div>
+</header>
+
+<!-- ═══ LOGIN ═══ -->
+<div class="page active" id="page-login">
+  <div class="card">
+    <div class="page-title">☀️ Wösch<span>plan</span> SO 16</div>
+    <div class="page-sub">Wäscheraum-Buchung für unser Haus &mdash; 6 Wohnungen, max. 12 Personen.</div>
+
+    <div id="step-name">
+      <div class="form-group">
+        <label>Dein Name</label>
+        <input type="text" id="in-name" placeholder="z.B. Ale" autocomplete="off">
+      </div>
+      <button class="btn" onclick="checkName()">Weiter</button>
+      <div class="err" id="err-name"></div>
+    </div>
+
+    <div id="step-pin" style="display:none">
+      <div class="pin-status-msg" id="pin-msg"></div>
+      <div class="form-group" id="grp-apartment" style="display:none">
+        <label>Wohnung (optional)</label>
+        <input type="text" id="in-apartment" placeholder="z.B. Wohnung 3">
+      </div>
+      <div class="form-group">
+        <label id="pin-label">PIN (4 Ziffern)</label>
+        <input type="password" inputmode="numeric" maxlength="4" class="pin-field" id="in-pin" placeholder="••••">
+      </div>
+      <button class="btn" onclick="loginOrRegister()" id="btn-pin-submit">Einloggen</button>
+      <button class="btn btn-secondary" onclick="backToStep1()">Zurück</button>
+      <div class="err" id="err-pin"></div>
+    </div>
+
+    <div class="qr-box">
+      <img id="qr-img" width="150" height="150" alt="QR Code zum Wöschplan">
+      <small>QR-Code scannen für schnellen Zugriff vom Handy 📱</small>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ KALENDER ═══ -->
+<div class="page" id="page-kalender">
+  <div class="row-between">
+    <div class="section-title">📅 Waschraum-Belegung</div>
+    <button class="refresh-btn" onclick="loadKalender()">↻ Aktualisieren</button>
+  </div>
+  <div class="day-tabs" id="day-tabs"></div>
+  <div class="occupancy-banner" id="occ-banner"></div>
+  <div class="badge-window">🕐 Buchen nur bis 5 Std. im Voraus möglich — fair für alle 12 Personen</div>
+  <div style="height:14px"></div>
+  <div class="slot-grid" id="slot-grid"></div>
+</div>
+
+<!-- ═══ CHAT ═══ -->
+<div class="page" id="page-chat">
+  <div class="section-title">💬 Haus-Chat</div>
+  <div class="chat-box">
+    <div id="chat-msgs"></div>
+    <div class="chat-input-row">
+      <input type="text" id="chat-input" placeholder="Nachricht schreiben…" maxlength="500" onkeydown="if(event.key==='Enter')sendChat()">
+      <button class="btn" onclick="sendChat()">Senden</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ ADMIN ═══ -->
+<div class="page" id="page-admin">
+  <div class="row-between">
+    <div class="section-title">⚙️ Admin-Bereich</div>
+    <button class="refresh-btn" onclick="loadAdmin()">↻ Aktualisieren</button>
+  </div>
+  <div class="card" style="margin-bottom:1.4rem">
+    <h3 style="margin-bottom:0.8rem">Nutzer &amp; Codes</h3>
+    <div id="admin-users"></div>
+  </div>
+  <div class="card">
+    <h3 style="margin-bottom:0.8rem">Alle Buchungen (heute &amp; morgen)</h3>
+    <div id="admin-bookings"></div>
+  </div>
+</div>
+
+<footer>🧺 Wöschplan SO 16 &middot; gebaut mit ☀️ &amp; Supabase</footer>
+
+<script>
+// ─── Supabase ───
+const SUPABASE_URL = 'https://tjrybgrdjvntdbjdlyio.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRqcnliZ3JkanZudGRiamRseWlvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA4NDk3MTMsImV4cCI6MjA5NjQyNTcxM30.socQYgTkbSm0VZ9H5_7BoXY_PvhyjKSMrtWnDtKa6XI';
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+const MACHINES = [{id:1,label:'Waschmaschine'},{id:2,label:'Tumbler'}];
+const SLOT_START_HOUR = 7, SLOT_END_HOUR = 22, SLOT_LEN_H = 2; // 2h-Slots 07–22 Uhr
+const BOOK_WINDOW_H = 5;
+
+let ME = null, MY_PIN = null, IS_ADMIN = false, IS_NEW_NAME = false;
+let calDayOffset = 0;
+let chatTimer = null;
+
+function loading(on){ document.getElementById('overlay').style.display = on ? 'flex' : 'none'; }
+function toast(msg,type='s'){ const t=document.getElementById('toast'); t.textContent=msg; t.className=`show ${type}`; setTimeout(()=>t.className='',2800); }
+function showErr(id,msg){ const e=document.getElementById(id); e.textContent=msg; e.style.display='block'; setTimeout(()=>e.style.display='none',4500); }
+function escHtml(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+// ─── Nav ───
+function go(name){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById('page-'+name).classList.add('active');
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.toggle('active', b.dataset.page===name));
+  stopChat();
+  if(name==='kalender') loadKalender();
+  if(name==='chat') startChat();
+  if(name==='admin') loadAdmin();
+}
+
+function setQr(){
+  const url = location.href.split('#')[0];
+  document.getElementById('qr-img').src = 'https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=' + encodeURIComponent(url);
+}
+setQr();
+
+// ─── Login-Flow ───
+async function checkName(){
+  const name = document.getElementById('in-name').value.trim();
+  if(!name){ showErr('err-name','Bitte Namen eingeben'); return; }
+  loading(true);
+  try{
+    const {data,error} = await sb.rpc('wp_check_name',{p_name:name});
+    if(error) throw error;
+    ME = name;
+    IS_NEW_NAME = !data.exists;
+    document.getElementById('step-name').style.display='none';
+    document.getElementById('step-pin').style.display='block';
+    const msgEl = document.getElementById('pin-msg');
+    const submitBtn = document.getElementById('btn-pin-submit');
+    if(IS_NEW_NAME){
+      msgEl.textContent = `Willkommen, ${name}! Wähle einen 4-stelligen PIN, um dein Konto zu erstellen.`;
+      document.getElementById('grp-apartment').style.display='block';
+      document.getElementById('pin-label').textContent = 'Neuer PIN wählen (4 Ziffern)';
+      submitBtn.textContent = 'Konto erstellen';
+    } else {
+      msgEl.textContent = `Willkommen zurück, ${name}! Gib deinen PIN ein.`;
+      document.getElementById('grp-apartment').style.display='none';
+      document.getElementById('pin-label').textContent = 'PIN';
+      submitBtn.textContent = 'Einloggen';
+    }
+    document.getElementById('in-pin').value='';
+    document.getElementById('in-pin').focus();
+  }catch(e){ showErr('err-name', e.message||'Fehler'); }
+  loading(false);
+}
+
+function backToStep1(){
+  document.getElementById('step-pin').style.display='none';
+  document.getElementById('step-name').style.display='block';
+}
+
+async function loginOrRegister(){
+  const pin = document.getElementById('in-pin').value.trim();
+  if(!/^[0-9]{4}$/.test(pin)){ showErr('err-pin','PIN muss 4 Ziffern haben'); return; }
+  loading(true);
+  try{
+    if(IS_NEW_NAME){
+      const apartment = document.getElementById('in-apartment').value.trim() || null;
+      const {data,error} = await sb.rpc('wp_register',{p_name:ME, p_pin:pin, p_apartment:apartment});
+      if(error) throw error;
+      IS_ADMIN = false;
+    } else {
+      const {data,error} = await sb.rpc('wp_login',{p_name:ME, p_pin:pin});
+      if(error) throw error;
+      if(!data.ok){
+        showErr('err-pin', data.reason==='wrong_pin' ? 'Falscher PIN' : 'Nutzer nicht gefunden');
+        loading(false); return;
+      }
+      if(data.blocked && !data.is_admin){
+        toast('Hinweis: du bist aktuell für den Chat gesperrt (Buchen bleibt möglich)','e');
+      }
+      IS_ADMIN = !!data.is_admin;
+      ME = data.name;
+    }
+    MY_PIN = pin;
+    sessionStorage.setItem('wp_name', ME);
+    sessionStorage.setItem('wp_pin', MY_PIN);
+    enterApp();
+  }catch(e){ showErr('err-pin', e.message||'Fehler'); }
+  loading(false);
+}
+
+function enterApp(){
+  document.getElementById('app-header').style.display='flex';
+  document.getElementById('who').textContent = ME;
+  document.getElementById('nav-admin').style.display = IS_ADMIN ? 'inline-block' : 'none';
+  go('kalender');
+}
+
+function logout(){
+  sessionStorage.removeItem('wp_name'); sessionStorage.removeItem('wp_pin');
+  ME=null; MY_PIN=null; IS_ADMIN=false;
+  stopChat();
+  document.getElementById('app-header').style.display='none';
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById('page-login').classList.add('active');
+  document.getElementById('step-pin').style.display='none';
+  document.getElementById('step-name').style.display='block';
+  document.getElementById('in-name').value='';
+}
+
+(function tryAutoLogin(){
+  const n = sessionStorage.getItem('wp_name'), p = sessionStorage.getItem('wp_pin');
+  if(n && p){
+    loading(true);
+    sb.rpc('wp_login',{p_name:n,p_pin:p}).then(({data,error})=>{
+      loading(false);
+      if(!error && data && data.ok){
+        ME = data.name; MY_PIN = p; IS_ADMIN = !!data.is_admin;
+        enterApp();
+      }
+    });
+  }
+})();
+
+// ─── Kalender ───
+function dayLabel(offset){
+  const d = new Date(); d.setDate(d.getDate()+offset);
+  return { name: d.toLocaleDateString('de-CH',{weekday:'short'}), num: d.getDate(), date: d };
+}
+
+function renderDayTabs(){
+  const el = document.getElementById('day-tabs'); el.innerHTML='';
+  for(let i=0;i<7;i++){
+    const {name,num} = dayLabel(i);
+    const div = document.createElement('div');
+    div.className = 'day-tab' + (i===calDayOffset ? ' active' : '');
+    div.innerHTML = `<div class="dt-name">${i===0?'Heute':name}</div><div class="dt-num">${num}</div>`;
+    div.onclick = ()=>{ calDayOffset=i; loadKalender(); };
+    el.appendChild(div);
+  }
+}
+
+function slotsForDay(){
+  const slots = [];
+  for(let h=SLOT_START_HOUR; h<SLOT_END_HOUR; h+=SLOT_LEN_H){
+    slots.push(h);
+  }
+  return slots;
+}
+
+async function loadKalender(){
+  renderDayTabs();
+  const grid = document.getElementById('slot-grid');
+  grid.innerHTML = '<div style="color:var(--text2);padding:1rem">Lade…</div>';
+  const {date} = dayLabel(calDayOffset);
+  const dayStart = new Date(date); dayStart.setHours(0,0,0,0);
+  const dayEnd = new Date(dayStart); dayEnd.setDate(dayEnd.getDate()+1);
+
+  const {data:bookings, error} = await sb.from('wp_bookings').select('*')
+    .gte('start_ts', dayStart.toISOString()).lt('start_ts', dayEnd.toISOString())
+    .order('start_ts');
+  if(error){ grid.innerHTML = '<div style="color:var(--full)">Fehler beim Laden</div>'; return; }
+
+  const now = new Date();
+  const bookLimit = new Date(now.getTime() + BOOK_WINDOW_H*3600*1000);
+  const totalSlots = slotsForDay().length * MACHINES.length;
+  let bookedCount = 0;
+
+  grid.innerHTML = '';
+  for(const h of slotsForDay()){
+    const start = new Date(dayStart); start.setHours(h,0,0,0);
+    const end = new Date(start); end.setHours(h+SLOT_LEN_H,0,0,0);
+    const isPast = end <= now;
+    const tooFar = start > bookLimit;
+
+    const card = document.createElement('div');
+    card.className = 'slot-card' + (isPast ? ' slot-past' : '') + (!isPast && tooFar ? ' slot-toofar' : '');
+    const timeStr = `${String(h).padStart(2,'0')}:00–${String(h+SLOT_LEN_H).padStart(2,'0')}:00`;
+
+    let pillsHtml = '', namesHtml = '';
+    for(const m of MACHINES){
+      const b = bookings.find(x=>x.machine===m.id && new Date(x.start_ts).getTime()===start.getTime());
+      if(b){
+        bookedCount++;
+        const mine = b.user_name.toLowerCase()===ME.toLowerCase();
+        pillsHtml += `<div class="m-pill ${mine?'m-mine':'m-taken'}" title="${escHtml(b.user_name)}">${m.label}</div>`;
+        namesHtml += `${mine?'Du':escHtml(b.user_name)} (${m.label})${mine?` <a href="#" onclick="cancelBooking(${b.id});return false;" style="color:var(--full)">✕</a>`:''}<br>`;
+      } else {
+        pillsHtml += `<div class="m-pill m-free" ${isPast||tooFar?'':`onclick="bookSlot(${m.id},'${start.toISOString()}','${end.toISOString()}')" style="cursor:pointer"`}>${m.label} frei</div>`;
+      }
+    }
+    card.innerHTML = `<div class="slot-time">${timeStr}</div><div class="slot-machines">${pillsHtml}</div><div class="slot-booked-by">${namesHtml}</div>`;
+    grid.appendChild(card);
+  }
+
+  renderOccBanner(bookedCount, totalSlots);
+}
+
+function renderOccBanner(booked, total){
+  const pct = total ? booked/total : 0;
+  const color = pct >= 0.85 ? 'var(--full)' : pct >= 0.4 ? 'var(--warn)' : 'var(--ok)';
+  const circ = 2*Math.PI*26;
+  const el = document.getElementById('occ-banner');
+  el.innerHTML = `
+    <svg class="ring" viewBox="0 0 64 64">
+      <circle cx="32" cy="32" r="26" fill="none" stroke="var(--card2)" stroke-width="8"/>
+      <circle cx="32" cy="32" r="26" fill="none" stroke="${color}" stroke-width="8"
+        stroke-dasharray="${circ}" stroke-dashoffset="${circ*(1-pct)}" stroke-linecap="round" transform="rotate(-90 32 32)"/>
+    </svg>
+    <div class="occupancy-text">
+      <div class="occupancy-frac">${booked}/${total} belegt</div>
+      <div class="occupancy-label">Waschraum-Auslastung für diesen Tag</div>
+    </div>`;
+}
+
+async function bookSlot(machine, startIso, endIso){
+  loading(true);
+  const {data,error} = await sb.rpc('wp_create_booking',{p_name:ME,p_pin:MY_PIN,p_machine:machine,p_start:startIso,p_end:endIso});
+  loading(false);
+  if(error){ toast(error.message,'e'); return; }
+  toast('Gebucht! 🧺☀️');
+  loadKalender();
+}
+
+async function cancelBooking(id){
+  if(!confirm('Buchung wirklich stornieren?')) return;
+  loading(true);
+  const {error} = await sb.rpc('wp_cancel_booking',{p_name:ME,p_pin:MY_PIN,p_booking_id:id});
+  loading(false);
+  if(error){ toast(error.message,'e'); return; }
+  toast('Storniert');
+  loadKalender();
+}
+
+// ─── Chat ───
+function startChat(){
+  document.getElementById('chat-msgs').innerHTML = '<div style="padding:1rem;color:var(--text2)">Lade…</div>';
+  loadChat(true);
+  if(!chatTimer) chatTimer = setInterval(()=>loadChat(false), 5000);
+}
+function stopChat(){ if(chatTimer){ clearInterval(chatTimer); chatTimer=null; } }
+
+async function loadChat(initial){
+  const {data,error} = await sb.from('wp_chat_messages').select('*').order('id',{ascending:true}).limit(200);
+  if(error){ if(initial) document.getElementById('chat-msgs').innerHTML = '<div style="padding:1rem;color:var(--text2)">Chat nicht verfügbar</div>'; return; }
+  const el = document.getElementById('chat-msgs');
+  el.innerHTML = data.map(m=>{
+    const mine = m.name.toLowerCase()===(ME||'').toLowerCase();
+    const delBtn = IS_ADMIN ? `<button class="cm-del" onclick="delChatMsg(${m.id})" title="Löschen">✕</button>` : '';
+    return `<div class="chat-msg ${mine?'me':''}" style="position:relative">${delBtn}<span class="cm-name">${escHtml(m.name)}</span>${escHtml(m.msg)}</div>`;
+  }).join('');
+  el.scrollTop = el.scrollHeight;
+}
+
+async function sendChat(){
+  const input = document.getElementById('chat-input');
+  const msg = input.value.trim();
+  if(!msg) return;
+  input.value='';
+  const {error} = await sb.rpc('wp_send_chat',{p_name:ME,p_pin:MY_PIN,p_msg:msg});
+  if(error){ toast(error.message,'e'); return; }
+  loadChat(false);
+}
+
+async function delChatMsg(id){
+  if(!confirm('Nachricht löschen?')) return;
+  const {error} = await sb.rpc('wp_admin_action',{p_admin_name:ME,p_admin_pin:MY_PIN,p_action:'delete_chat',p_msg_id:id});
+  if(error){ toast(error.message,'e'); return; }
+  loadChat(false);
+}
+
+// ─── Admin ───
+async function loadAdmin(){
+  loading(true);
+  const {data,error} = await sb.rpc('wp_admin_action',{p_admin_name:ME,p_admin_pin:MY_PIN,p_action:'list_users'});
+  loading(false);
+  const usersEl = document.getElementById('admin-users');
+  if(error){ usersEl.innerHTML = `<div style="color:var(--full)">${escHtml(error.message)}</div>`; return; }
+  const users = data || [];
+  usersEl.innerHTML = users.map(u=>{
+    const adminBadge = u.is_admin ? '<span class="admin-badge">Admin</span>' : '';
+    const blockedBadge = u.blocked ? '<span class="blocked-badge">Chat gesperrt</span>' : '';
+    return `<div class="user-row">
+      <div><div class="user-name">${escHtml(u.name)}${adminBadge}${blockedBadge}</div>
+        <div style="font-size:0.78rem;color:var(--text2)">${escHtml(u.apartment||'–')}</div></div>
+      <div class="user-pin">${escHtml(u.pin)}</div>
+      <div class="row-actions">
+        <button class="icon-btn" title="Chat sperren/entsperren" onclick="adminToggleBlock('${escHtml(u.name)}')">${u.blocked?'🔓':'🚫'}</button>
+        <button class="icon-btn" title="PIN zurücksetzen" onclick="adminResetPin('${escHtml(u.name)}')">🔑</button>
+        ${!u.is_admin?`<button class="icon-btn" title="Nutzer löschen" onclick="adminDeleteUser('${escHtml(u.name)}')">🗑️</button>`:''}
+      </div>
+    </div>`;
+  }).join('') || '<div style="color:var(--text2)">Keine Nutzer</div>';
+
+  const now = new Date(); const tomorrow = new Date(now); tomorrow.setDate(tomorrow.getDate()+2); tomorrow.setHours(0,0,0,0);
+  const {data:bookings} = await sb.from('wp_bookings').select('*').gte('start_ts', new Date(now.getFullYear(),now.getMonth(),now.getDate()).toISOString()).lt('start_ts', tomorrow.toISOString()).order('start_ts');
+  const bEl = document.getElementById('admin-bookings');
+  bEl.innerHTML = (bookings||[]).map(b=>{
+    const m = MACHINES.find(x=>x.id===b.machine);
+    return `<div class="user-row"><div>${new Date(b.start_ts).toLocaleString('de-CH',{weekday:'short',day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})} — ${m?m.label:b.machine} — <strong>${escHtml(b.user_name)}</strong></div>
+      <div class="row-actions"><button class="icon-btn" onclick="cancelBooking(${b.id})">🗑️</button></div></div>`;
+  }).join('') || '<div style="color:var(--text2)">Keine Buchungen</div>';
+}
+
+async function adminToggleBlock(name){
+  const {error} = await sb.rpc('wp_admin_action',{p_admin_name:ME,p_admin_pin:MY_PIN,p_action:'toggle_block',p_target_name:name});
+  if(error){ toast(error.message,'e'); return; }
+  toast('Aktualisiert'); loadAdmin();
+}
+async function adminResetPin(name){
+  const pin = prompt(`Neuer 4-stelliger PIN für ${name}:`);
+  if(!pin) return;
+  if(!/^[0-9]{4}$/.test(pin)){ toast('PIN muss 4 Ziffern haben','e'); return; }
+  const {error} = await sb.rpc('wp_admin_action',{p_admin_name:ME,p_admin_pin:MY_PIN,p_action:'reset_pin',p_target_name:name,p_new_pin:pin});
+  if(error){ toast(error.message,'e'); return; }
+  toast('PIN zurückgesetzt'); loadAdmin();
+}
+async function adminDeleteUser(name){
+  if(!confirm(`${name} wirklich löschen?`)) return;
+  const {error} = await sb.rpc('wp_admin_action',{p_admin_name:ME,p_admin_pin:MY_PIN,p_action:'delete_user',p_target_name:name});
+  if(error){ toast(error.message,'e'); return; }
+  toast('Gelöscht'); loadAdmin();
+}
+</script>
+</body>
+</html>
