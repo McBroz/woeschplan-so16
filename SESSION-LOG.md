@@ -54,6 +54,27 @@ Chat mit Admin-Moderation), aber neu für Wäscheplan-Domäne.
 - `SESSION-LOG.md` — dieses Log
 - `session-dashboard.html` — visuelle Status-/Projektübersicht
 
+## 2026-07-18 — Nachtrag: Wunschboard (Wochenplan)
+
+**Anfrage:** zusätzlich zum harten 5h-Buchungssystem ein unverbindliches Wunschboard
+für die kommende Woche, wo jede:r einen Wunsch (Tag/Tageszeit/Notiz) eintragen kann —
+keine Reservation, mehrere Wünsche am selben Slot okay, solange respektvoll abgesprochen.
+
+**Umsetzung:**
+- Neue Tabelle `wp_wishes` (in [`supabase-setup-wochenplan.sql`](supabase-setup-wochenplan.sql),
+  additiv zum bestehenden Setup) — bewusst **ohne** Überlappungs-/Konflikt-Check in der
+  RPC `wp_add_wish`, da es explizit kein Reservationssystem sein soll.
+- Gleiches Sicherheitsmuster wie Buchungen/Chat: anon darf nur SELECT, Schreiben nur
+  über `wp_add_wish` / `wp_remove_wish` (security definer, prüft Name+PIN).
+- Zeitraum auf die kommenden 7 Tage begrenzt (serverseitig geprüft).
+- Neuer Tab "💭 Wunschboard" in `index.html` mit 7-Tage-Kartenansicht, Tageszeiten
+  morgens/mittags/nachmittags/abends, eigene Wünsche selbst entfernbar, Admin kann
+  alle entfernen.
+- Im Browser getestet (Login-Seite lädt ohne Konsolenfehler, Syntax der Ergänzung ok).
+
+**Offen:** `supabase-setup-wochenplan.sql` muss noch im Supabase SQL Editor ausgeführt
+werden (zusätzlich zum ursprünglichen `supabase-setup.sql`).
+
 **Offene Schritte (Nutzer):**
 1. `supabase-setup.sql` im Supabase SQL Editor ausführen.
 2. Lokalen Ordner in GitHub Desktop hinzufügen → **privates** Repo erstellen → Push.

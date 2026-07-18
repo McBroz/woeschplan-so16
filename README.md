@@ -20,6 +20,15 @@ Reines HTML/JS ohne Build-Pipeline, Backend = Supabase (Postgres + RPC-Funktione
 - Admin-Konto: Name `Ale`, PIN `8134` → sieht Nutzerliste inkl. PINs, kann
   Chat moderieren, PINs zurücksetzen, Nutzer löschen, Buchungen stornieren.
 
+## Wunschboard (Wochenplan)
+
+Zusätzlich zur festen 5h-Buchung gibt es ein unverbindliches **Wunschboard** für die
+kommenden 7 Tage: jede:r trägt frei ein, wann sie/er sich den Waschraum wünscht
+(Tag + Tageszeit morgens/mittags/nachmittags/abends + optionale Notiz). Es ist
+**keine Reservation** — mehrere Wünsche am selben Slot sind möglich, man spricht
+sich einfach respektvoll im Chat ab. Setup: zusätzlich
+[`supabase-setup-wochenplan.sql`](supabase-setup-wochenplan.sql) im SQL Editor ausführen.
+
 ## Regeln
 
 - Buchungen sind **maximal 5 Stunden im Voraus** möglich (fair für alle 12 Personen,

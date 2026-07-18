@@ -122,6 +122,23 @@
   .badge-window { display: inline-block; font-size: 0.62rem; background: rgba(46,134,171,0.12); color: var(--sky);
     border-radius: 6px; padding: 2px 6px; margin-left: 4px; font-weight: 700; }
 
+  /* ─── Wunschboard ─── */
+  .wp-week { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px,1fr)); gap: 12px; }
+  .wp-day { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 0.9rem 1rem;
+    box-shadow: 0 6px 20px rgba(180,120,40,0.08); }
+  .wp-day-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 8px; }
+  .wp-day-name { font-weight: 800; font-size: 1rem; }
+  .wp-day-date { font-size: 0.76rem; color: var(--text2); }
+  .wp-part { margin-bottom: 8px; }
+  .wp-part-label { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.4px; color: var(--text2); font-weight: 700; margin-bottom: 3px; }
+  .wp-chip { display: inline-flex; align-items: center; gap: 5px; background: var(--card2); border-radius: 8px; padding: 3px 8px;
+    font-size: 0.78rem; margin: 0 4px 4px 0; }
+  .wp-chip.mine { background: rgba(46,134,171,0.16); color: var(--sky); }
+  .wp-chip button { background: none; border: none; cursor: pointer; font-size: 0.75rem; color: var(--full); padding: 0; line-height: 1; }
+  .wp-add-btn { background: transparent; border: 1px dashed var(--border); color: var(--text2); border-radius: 8px;
+    padding: 3px 9px; font-size: 0.76rem; cursor: pointer; margin-bottom: 4px; }
+  .wp-add-btn:hover { border-color: var(--sun2); color: var(--sun2); }
+
   /* ─── Chat ─── */
   .chat-box { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden;
     box-shadow: 0 8px 24px rgba(180,120,40,0.08); }
@@ -169,6 +186,7 @@
   <div class="brand">☀️🧺 <span>Wösch</span>plan SO 16</div>
   <div class="nav">
     <button class="nav-btn" data-page="kalender" onclick="go('kalender')">📅 Kalender</button>
+    <button class="nav-btn" data-page="wochenplan" onclick="go('wochenplan')">💭 Wunschboard</button>
     <button class="nav-btn" data-page="chat" onclick="go('chat')">💬 Chat</button>
     <button class="nav-btn" id="nav-admin" data-page="admin" onclick="go('admin')" style="display:none">⚙️ Admin</button>
   </div>
@@ -223,6 +241,19 @@
   <div class="badge-window">🕐 Buchen nur bis 5 Std. im Voraus möglich — fair für alle 12 Personen</div>
   <div style="height:14px"></div>
   <div class="slot-grid" id="slot-grid"></div>
+</div>
+
+<!-- ═══ WOCHENPLAN / WUNSCHBOARD ═══ -->
+<div class="page" id="page-wochenplan">
+  <div class="row-between">
+    <div class="section-title">💭 Wunschboard</div>
+    <button class="refresh-btn" onclick="loadWochenplan()">↻ Aktualisieren</button>
+  </div>
+  <div class="pin-status-msg">
+    Kein Reservationssystem &mdash; einfach eintragen, wann du dir den Waschraum wünschst.
+    Mehrere Wünsche am selben Tag sind okay, solange man sich respektvoll abspricht (💬 Chat) 🙂
+  </div>
+  <div class="wp-week" id="wp-week"></div>
 </div>
 
 <!-- ═══ CHAT ═══ -->
@@ -281,6 +312,7 @@ function go(name){
   document.querySelectorAll('.nav-btn').forEach(b=>b.classList.toggle('active', b.dataset.page===name));
   stopChat();
   if(name==='kalender') loadKalender();
+  if(name==='wochenplan') loadWochenplan();
   if(name==='chat') startChat();
   if(name==='admin') loadAdmin();
 }
@@ -499,6 +531,65 @@ async function cancelBooking(id){
   if(error){ toast(error.message,'e'); return; }
   toast('Storniert');
   loadKalender();
+}
+
+// ─── Wunschboard ───
+const DAYPARTS = [{key:'morgens',label:'Morgens'},{key:'mittags',label:'Mittags'},{key:'nachmittags',label:'Nachmittags'},{key:'abends',label:'Abends'}];
+
+async function loadWochenplan(){
+  const el = document.getElementById('wp-week');
+  el.innerHTML = '<div style="color:var(--text2);padding:1rem">Lade…</div>';
+  const today = new Date(); today.setHours(0,0,0,0);
+  const weekEnd = new Date(today); weekEnd.setDate(weekEnd.getDate()+8);
+
+  const {data:wishes, error} = await sb.from('wp_wishes').select('*')
+    .gte('wish_date', today.toISOString().slice(0,10))
+    .lt('wish_date', weekEnd.toISOString().slice(0,10))
+    .order('created_at');
+  if(error){ el.innerHTML = '<div style="color:var(--full)">Wunschboard nicht verfügbar</div>'; return; }
+
+  el.innerHTML = '';
+  for(let i=0;i<7;i++){
+    const d = new Date(today); d.setDate(d.getDate()+i);
+    const dateStr = d.toISOString().slice(0,10);
+    const dayWishes = (wishes||[]).filter(w=>w.wish_date===dateStr);
+
+    const card = document.createElement('div');
+    card.className = 'wp-day';
+    let partsHtml = '';
+    for(const dp of DAYPARTS){
+      const chips = dayWishes.filter(w=>w.daypart===dp.key).map(w=>{
+        const mine = w.user_name.toLowerCase()===(ME||'').toLowerCase();
+        const delBtn = (mine || IS_ADMIN) ? `<button onclick="removeWish(${w.id})" title="Entfernen">✕</button>` : '';
+        const note = w.note ? ` — ${escHtml(w.note)}` : '';
+        return `<span class="wp-chip ${mine?'mine':''}">${mine?'Du':escHtml(w.user_name)}${note}${delBtn}</span>`;
+      }).join('') || '<span style="color:var(--text2);font-size:0.78rem">–</span>';
+      partsHtml += `<div class="wp-part"><div class="wp-part-label">${dp.label}</div>${chips}</div>`;
+    }
+    card.innerHTML = `<div class="wp-day-head"><div class="wp-day-name">${i===0?'Heute':d.toLocaleDateString('de-CH',{weekday:'long'})}</div>
+      <div class="wp-day-date">${d.toLocaleDateString('de-CH',{day:'numeric',month:'short'})}</div></div>
+      ${partsHtml}
+      <button class="wp-add-btn" onclick="addWish('${dateStr}')">+ Wunsch eintragen</button>`;
+    el.appendChild(card);
+  }
+}
+
+async function addWish(dateStr){
+  const dpLabel = prompt('Tageszeit: morgens / mittags / nachmittags / abends');
+  if(!dpLabel) return;
+  const dp = dpLabel.trim().toLowerCase();
+  if(!DAYPARTS.some(d=>d.key===dp)){ toast('Bitte morgens, mittags, nachmittags oder abends eingeben','e'); return; }
+  const note = prompt('Notiz (optional, z.B. "nur kurz")') || null;
+  const {error} = await sb.rpc('wp_add_wish',{p_name:ME,p_pin:MY_PIN,p_date:dateStr,p_daypart:dp,p_note:note});
+  if(error){ toast(error.message,'e'); return; }
+  toast('Wunsch eingetragen ☀️');
+  loadWochenplan();
+}
+
+async function removeWish(id){
+  const {error} = await sb.rpc('wp_remove_wish',{p_name:ME,p_pin:MY_PIN,p_wish_id:id});
+  if(error){ toast(error.message,'e'); return; }
+  loadWochenplan();
 }
 
 // ─── Chat ───
