@@ -154,6 +154,34 @@ stattdessen wurden nur die Texte/Badges in der App geschärft (Nav-Label "Wunsch
 **Nebenbei:** beim Testen versehentlich erzeugte Test-Buchungen zweimal wieder bereinigt
 (DB ist sauber, 0 Buchungen).
 
+## 2026-07-19 (später) — Wunsch-Formular statt Browser-Popups, Live-Deploy abgeschlossen
+
+**Anfrage:** unklar, wie/wann ein Wunsch im Wunschboard gespeichert wird (bisher liefen
+`prompt()`-Popups ohne echten Speichern-Button) — dafür einen Button bauen, Admin soll
+Wünsche weiterhin löschen können, Änderungen sollen künftig immer gleich gepusht werden.
+
+**Umgesetzt:**
+- Wunsch-Erfassung von zwei hässlichen `prompt()`-Dialogen auf ein richtiges Modal
+  umgestellt: Tag (read-only Anzeige), Tageszeit-Dropdown, optionales Notiz-Feld,
+  klarer „💾 Speichern"-Button + „Abbrechen". Live getestet (Speichern, Anzeige als Chip,
+  Löschen) — DB-Rundlauf verifiziert, danach Test-Eintrag wieder entfernt.
+- Admin-Löschrecht für Wünsche gab es serverseitig (`wp_remove_wish`) und clientseitig
+  (`mine || IS_ADMIN`) bereits vorher — jetzt nur deutlicher gemacht (🗑️-Icon statt ✕,
+  Bestätigungsdialog vor dem Löschen).
+- `.gitignore` ergänzt (`.claude/`), damit interne Tooling-Dateien nie versehentlich
+  mitcommitted werden — ist beim `git add -A` aufgefallen.
+- **Live-Deploy komplett abgeschlossen:** GitHub Pages brauchte zusätzlich zum
+  öffentlichen Repo noch einen expliziten "Branch: main" + Save in den Pages-Settings
+  (stand vorher auf "None", auch mit Inhalt im Repo). Push selbst lief über einen
+  Hintergrundprozess, den der Nutzer per Login-Popup bestätigt hat (ich kann das
+  Popup-Fenster nicht sehen/bedienen). Danach verifiziert:
+  `https://mcbroz.github.io/woeschplan-so16/` lädt vollständig, Login/Kalender/
+  Wochenwünsche/Chat/Admin/Statistik funktionieren live gegen Supabase.
+- **Screenshot-Hinweis für zukünftige Sessions:** der Browser-Preview für Dateien
+  außerhalb des Projektordners liefert teils **gecachte/statische Screenshots** —
+  bei Unstimmigkeiten zwischen Screenshot und erwartetem Verhalten den echten
+  DOM-Zustand per `javascript_tool` verifizieren, nicht dem Screenshot blind vertrauen.
+
 ## Offene Schritte (Nutzer) — Stand 2026-07-19
 
 1. ✅ Alle SQL-Skripte ausgeführt (Setup, Wunschboard, 2-Tage-Migration, Statistik).

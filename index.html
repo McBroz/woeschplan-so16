@@ -77,9 +77,15 @@
 
   .form-group { margin-bottom: 1.1rem; }
   label { display: block; font-size: 0.76rem; color: var(--text2); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600; }
-  input[type=text], input[type=password], input[type=number] { width: 100%; background: var(--cream); border: 1px solid var(--border);
-    border-radius: 10px; padding: 11px 14px; color: var(--text); font-size: 0.96rem; outline: none; transition: border 0.2s; }
-  input:focus { border-color: var(--sun2); }
+  input[type=text], input[type=password], input[type=number], select { width: 100%; background: var(--cream); border: 1px solid var(--border);
+    border-radius: 10px; padding: 11px 14px; color: var(--text); font-size: 0.96rem; outline: none; transition: border 0.2s; font-family: inherit; }
+  input:focus, select:focus { border-color: var(--sun2); }
+
+  /* ─── Modal ─── */
+  .modal-backdrop { position: fixed; inset: 0; background: rgba(58,46,31,0.45); display: flex; align-items: center;
+    justify-content: center; z-index: 500; padding: 1rem; animation: fadeUp 0.2s ease; }
+  .modal-card { background: var(--card); border-radius: var(--radius); padding: 1.6rem; max-width: 380px; width: 100%;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.25); }
   .btn { background: linear-gradient(135deg, var(--sun) 0%, var(--sun2) 100%); border: none; color: #fff; padding: 12px 20px;
     border-radius: 10px; font-size: 0.92rem; font-weight: 700; cursor: pointer; transition: all 0.2s; width: 100%;
     box-shadow: 0 4px 16px rgba(255,140,66,0.35); }
@@ -333,6 +339,32 @@
     Sobald der Tag näher rückt, machst du daraus im 📅 Kalender eine echte Buchung.
   </div>
   <div class="wp-week" id="wp-week"></div>
+</div>
+
+<!-- ═══ WUNSCH-MODAL ═══ -->
+<div id="wish-modal-backdrop" class="modal-backdrop" style="display:none" onclick="if(event.target===this)closeWishModal()">
+  <div class="modal-card">
+    <div class="page-title" style="font-size:1.3rem;margin-bottom:1rem">💭 Wunsch eintragen</div>
+    <div class="form-group">
+      <label>Tag</label>
+      <div id="wish-modal-date" style="font-weight:700"></div>
+    </div>
+    <div class="form-group">
+      <label>Tageszeit</label>
+      <select id="wish-daypart">
+        <option value="morgens">Morgens</option>
+        <option value="mittags">Mittags</option>
+        <option value="nachmittags">Nachmittags</option>
+        <option value="abends">Abends</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Notiz (optional)</label>
+      <input type="text" id="wish-note" placeholder="z.B. nur kurz" maxlength="200">
+    </div>
+    <button class="btn" onclick="saveWish()">💾 Speichern</button>
+    <button class="btn btn-secondary" onclick="closeWishModal()">Abbrechen</button>
+  </div>
 </div>
 
 <!-- ═══ CHAT ═══ -->
@@ -661,7 +693,8 @@ async function loadWochenplan(){
     for(const dp of DAYPARTS){
       const chips = dayWishes.filter(w=>w.daypart===dp.key).map(w=>{
         const mine = w.user_name.toLowerCase()===(ME||'').toLowerCase();
-        const delBtn = (mine || IS_ADMIN) ? `<button onclick="removeWish(${w.id})" title="Entfernen">✕</button>` : '';
+        const canDelete = mine || IS_ADMIN;
+        const delBtn = canDelete ? `<button onclick="removeWish(${w.id})" title="${mine?'Eigenen Wunsch löschen':'Wunsch löschen (Admin)'}">🗑️</button>` : '';
         const note = w.note ? ` — ${escHtml(w.note)}` : '';
         return `<span class="wp-chip ${mine?'mine':''}">${mine?'Du':escHtml(w.user_name)}${note}${delBtn}</span>`;
       }).join('') || '<span style="color:var(--text2);font-size:0.78rem">–</span>';
@@ -675,21 +708,39 @@ async function loadWochenplan(){
   }
 }
 
-async function addWish(dateStr){
-  const dpLabel = prompt('Tageszeit: morgens / mittags / nachmittags / abends');
-  if(!dpLabel) return;
-  const dp = dpLabel.trim().toLowerCase();
-  if(!DAYPARTS.some(d=>d.key===dp)){ toast('Bitte morgens, mittags, nachmittags oder abends eingeben','e'); return; }
-  const note = prompt('Notiz (optional, z.B. "nur kurz")') || null;
-  const {error} = await sb.rpc('wp_add_wish',{p_name:ME,p_pin:MY_PIN,p_date:dateStr,p_daypart:dp,p_note:note});
+let wishModalDate = null;
+
+function addWish(dateStr){
+  wishModalDate = dateStr;
+  const d = new Date(dateStr + 'T00:00:00');
+  document.getElementById('wish-modal-date').textContent = d.toLocaleDateString('de-CH',{weekday:'long',day:'numeric',month:'long'});
+  document.getElementById('wish-daypart').value = 'morgens';
+  document.getElementById('wish-note').value = '';
+  document.getElementById('wish-modal-backdrop').style.display = 'flex';
+}
+
+function closeWishModal(){
+  document.getElementById('wish-modal-backdrop').style.display = 'none';
+  wishModalDate = null;
+}
+
+async function saveWish(){
+  const dp = document.getElementById('wish-daypart').value;
+  const note = document.getElementById('wish-note').value.trim() || null;
+  loading(true);
+  const {error} = await sb.rpc('wp_add_wish',{p_name:ME,p_pin:MY_PIN,p_date:wishModalDate,p_daypart:dp,p_note:note});
+  loading(false);
   if(error){ toast(error.message,'e'); return; }
-  toast('Wunsch eingetragen ☀️');
+  toast('Wunsch gespeichert ☀️');
+  closeWishModal();
   loadWochenplan();
 }
 
 async function removeWish(id){
+  if(!confirm('Diesen Wunsch wirklich löschen?')) return;
   const {error} = await sb.rpc('wp_remove_wish',{p_name:ME,p_pin:MY_PIN,p_wish_id:id});
   if(error){ toast(error.message,'e'); return; }
+  toast('Wunsch gelöscht');
   loadWochenplan();
 }
 
