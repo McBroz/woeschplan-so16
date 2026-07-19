@@ -22,20 +22,27 @@ Reines HTML/JS ohne Build-Pipeline, Backend = Supabase (Postgres + RPC-Funktione
 - Admin-Konto: Name `Ale`, PIN `8134` → sieht Nutzerliste inkl. PINs, kann
   die Hausordnung pflegen/löschen, PINs zurücksetzen, Nutzer löschen, Buchungen stornieren.
 
-## Kalender vs. Wochenwünsche — der Unterschied
+## Die vier Ansichten
 
-Zwei bewusst getrennte Ansichten, weil sie unterschiedliche Probleme lösen:
-
+- **🏠 Übersicht:** Landing-Seite nach dem Login. Sonnenberg-Willkommensbanner,
+  tageszeit-abhängige Begrüßung und auf einen Blick, *was heute läuft* — freie Slots,
+  Auslastung, eigene Termine, die heutigen Buchungen und der letzte Hausordnungs-Eintrag.
 - **📅 Kalender:** feste, verbindliche Buchung eines Zeitfensters — aber nur für
   **heute + die folgenden 3 Tage**, damit niemand den Waschraum wochenlang blockiert.
-- **💭 Wochenwünsche:** weil man 3 Tage im Voraus oft noch nicht buchen kann, aber schon
-  weiß "ich muss Freitag waschen", gibt's hier ein unverbindliches Wunschboard für die
-  **ganze kommende Woche** (Tag + Tageszeit + Notiz). Keine Reservation, keine
-  Kollisionsprüfung — mehrere Wünsche am selben Slot sind okay, man spricht sich ab.
-  Sobald der Tag ins 3-Tage-Fenster rutscht, macht man daraus im Kalender eine echte Buchung.
+  Wünsche aus der Wochenvorschau erscheinen hier als unverbindliche Vorschau.
+- **🗓️ Wochenvorschau:** Vorausplanung fürs **ganze Jahr**, nach Monat gruppiert. Jede
+  Kalenderwoche ist eine Karte; man trägt pro Woche einen Waschwunsch mit kurzer Notiz
+  ein. Die aktuelle Woche ist hervorgehoben, vergangene sind ausgegraut.
+- **📋 Hausordnung:** vom Admin gepflegte Infotafel (siehe unten).
 
-Setup: zusätzlich [`supabase-setup-wochenplan.sql`](supabase-setup-wochenplan.sql) im
-SQL Editor ausführen.
+**Wunsch → echte Buchung:** Nur der Admin kann pro Woche einen Wunsch **fixieren**
+(📌 — fragt die Startstunde ab und legt Mo–Sa feste Buchungen für WM+TU an) oder eine
+Woche **sperren** (🔒 — dann kann der Nutzer sie nicht mehr bearbeiten). So sammeln alle
+ihre Wünsche fürs Jahr, und der Admin teilt verbindlich zu.
+
+Setup: zusätzlich [`supabase-setup-wochenplan.sql`](supabase-setup-wochenplan.sql) **und**
+[`supabase-migration-wishes-to-bookings.sql`](supabase-migration-wishes-to-bookings.sql)
+im SQL Editor ausführen.
 
 ## Regeln
 

@@ -234,6 +234,53 @@ wurde vom Sicherheits-Classifier einmal als "Credential Leakage" markiert (Anon-
 bewusst öffentlich im Code, RLS/RPC-geschützt) — auf UI-Klicks statt JS-Konsolen-Queries
 ausgewichen, um Bereinigungen durchzuführen; funktioniert genauso gut.
 
+## 2026-07-19 (Design-Overhaul + Wochenvorschau nutzbar) — mit Opus 4.8
+
+**Anfrage:** Grosser grafischer Rundum-Neubau (Fokus Sonne/Sonnenberg, Bilder,
+Animationen), eine schöne Willkommens-/Übersichtsseite mit „was geht heute", und die
+Wochenvorschau endlich befüllbar/nutzbar machen. Ausserdem: WM/TU als Kurzbezeichnung,
+Solange als Admin, alles selbst auf Supabase ausführen.
+
+**Umgesetzt:**
+- **Neue Übersicht/Dashboard-Seite (`page-home`)** als Landing nach dem Login:
+  - Grosse **Sonnenberg-Hero-Szene** als Inline-SVG (aufgehende Sonne mit rotierenden
+    Strahlen, geschichtete Hügel, kleines Haus „SO 16", Wäscheleine, driftende Wolken) —
+    das sind die „Bilder", bewusst als SVG (offlinefest, gestochen scharf, thematisch exakt).
+  - Tageszeit-abhängige Begrüssung (Guten Morgen/Hallo/Guten Abend + ☀️), volles Datum.
+  - Drei **Kennzahl-Kacheln**: freie Slots heute, belegt heute (x/8), eigene Termine heute.
+  - Panel **„Heute im Waschraum"** (dedupte Buchungsliste mit Zeit + wer + eigene markiert),
+    Schnellzugriff-Buttons, und eine **Hausordnung-Vorschau** (letzter Tafel-Eintrag im
+    Blackboard-Look).
+- **Komplett überarbeitetes Design-System (CSS neu):** wärmere Sonnen-Palette, weichere
+  Schatten/Radien, Glassmorphism-Header, Fokus-Ringe, durchgehend `Baloo 2` für Headings,
+  hübschere Slot-/Day-Tabs, Toast/Overlay verfeinert. Neuer Nav-Punkt „🏠 Übersicht".
+- **Wochenvorschau endlich nutzbar** (war leer, weil die Nav noch die gelöschte Funktion
+  `loadWochenplan()` rief → JS-Fehler; auf `loadWochenvorschau()` gefixt):
+  - Ganzes Jahr als **KW-Karten, nach Monat gruppiert**, mit Datumsbereich je Woche,
+    Jahr-Umschalter (‹ 2026 ›), Legende. **Aktuelle KW** hervorgehoben (oranger Rahmen +
+    „jetzt"-Badge), vergangene Wochen gedimmt.
+  - Nutzer trägt pro Woche einen Wunsch mit kurzer Notiz ein (Inline-Feld + grüner „＋").
+  - **Admin** je Woche: **📌 Fixieren** (fragt Startstunde ab → macht daraus feste
+    Mo–Sa-Buchungen für WM+TU über `wp_promote_wish_to_booking`) und **🔒 Sperren/Frei**
+    (`wp_lock_wish`) — gesperrte Wochen kann der Nutzer nicht mehr bearbeiten.
+  - **Wünsche erscheinen als unverbindliche Vorschau im Kalender** (Banner „💭 Wünsche für
+    KW n" über dem Slot-Grid, via `renderCalWishes`).
+- **WM/TU** statt „Waschmaschine/Tumbler" als Kurzlabel überall.
+- **DB-Migrationen (alle selbst im Supabase SQL-Editor ausgeführt, via Monaco-Editor-API):**
+  `supabase-migration-wishes-to-bookings.sql` — `wp_wishes` um `calendar_week`, `year`,
+  `is_locked`, `locked_by` erweitert; alte `wish_date`/`daypart` auf NULL-erlaubt gesetzt
+  (sonst NOT-NULL-Fehler beim KW-Insert); RPCs `wp_lock_wish`, `wp_promote_wish_to_booking`,
+  `wp_add_wish_kw`, `wp_del_wish` (letztere zwei nötig, weil direktes Insert/Delete auf
+  `wp_wishes` per RLS blockiert ist — konsistent mit dem RPC-Sicherheitsmodell).
+  Ausserdem `update wp_users set is_admin=true where name='solange'`.
+- **End-to-end live getestet** (echte Supabase): Wunsch eintragen ✓, sperren/entsperren ✓,
+  fixieren → 12 Buchungen (Mo–Sa × WM+TU) ✓, danach alle Testbuchungen wieder entfernt.
+
+**Technik-Notiz für später:** SQL liess sich im Supabase-Editor am zuverlässigsten setzen,
+indem der Monaco-Editor direkt beschrieben wird (`monaco.editor.getModels()[0].setValue(...)`)
+statt zu tippen (Auto-Klammern zerlegen sonst mehrzeiliges SQL). „Potential issue detected"-
+Dialog bei create/alter/delete ist normal → „Run query".
+
 ## Offene Schritte (Nutzer) — Stand 2026-07-19
 
 1. ✅ Alle SQL-Skripte ausgeführt (Setup, Wunschboard, 2-Tage-Migration, Statistik).
