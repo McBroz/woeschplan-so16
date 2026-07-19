@@ -320,7 +320,7 @@
     </svg>
     <div class="wh-text">
       <div class="wh-title">Bereit zum Waschen? ☀️</div>
-      <div class="wh-sub">Tippe unten auf einen freien Platz — buchbar für <b>heute &amp; die nächsten 3 Tage</b>. Waschmaschine &amp; Tumbler gehören immer zusammen zum Zeitfenster.</div>
+      <div class="wh-sub">Tippe unten auf einen freien Platz — buchbar für <b>heute &amp; die nächsten 3 Tage</b>. WM &amp; TU gehören immer zusammen zum Zeitfenster.</div>
     </div>
     <div class="bubble" style="width:14px;height:14px;left:44px;bottom:8px;animation-duration:4s"></div>
     <div class="bubble" style="width:9px;height:9px;left:60px;bottom:4px;animation-duration:5.5s;animation-delay:1s"></div>
@@ -329,7 +329,7 @@
 
   <div class="day-tabs" id="day-tabs"></div>
   <div class="occupancy-banner" id="occ-banner"></div>
-  <div class="badge-window">🕐 <b>Feste Buchung</b> für <b style="margin:0 3px">heute + die folgenden 3 Tage</b> — fair für alle 12 Personen. Waschmaschine + Tumbler werden immer gemeinsam gebucht. Weiter im Voraus planen? → 💭 Wochenwünsche</div>
+  <div class="badge-window">🕐 <b>Feste Buchung</b> für <b style="margin:0 3px">heute + die folgenden 3 Tage</b> — fair für alle 12 Personen. WM + TU werden immer gemeinsam gebucht. Weiter im Voraus planen? → 💭 Wochenwünsche</div>
   <div style="height:14px"></div>
   <div class="slot-grid" id="slot-grid"></div>
 </div>
@@ -417,7 +417,7 @@ const SUPABASE_URL = 'https://tjrybgrdjvntdbjdlyio.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRqcnliZ3JkanZudGRiamRseWlvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA4NDk3MTMsImV4cCI6MjA5NjQyNTcxM30.socQYgTkbSm0VZ9H5_7BoXY_PvhyjKSMrtWnDtKa6XI';
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-const MACHINES = [{id:1,label:'Waschmaschine',icon:'🌀'},{id:2,label:'Tumbler',icon:'🔥'}];
+const MACHINES = [{id:1,label:'WM',icon:'🌀'},{id:2,label:'TU',icon:'🔥'}];
 const SLOT_START_HOUR = 7, SLOT_END_HOUR = 22, SLOT_LEN_H = 2; // 2h-Slots 07–22 Uhr
 const BOOK_WINDOW_DAYS = 3; // buchbar: heute + die folgenden 3 Tage (offset 0,1,2,3)
 
@@ -849,7 +849,7 @@ async function loadAdmin(){
     seenSlots.add(key); return true;
   });
   bEl.innerHTML = dedupedBookings.map(b=>{
-    return `<div class="user-row"><div>${new Date(b.start_ts).toLocaleString('de-CH',{weekday:'short',day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})} — Waschmaschine + Tumbler — <strong>${escHtml(b.user_name)}</strong></div>
+    return `<div class="user-row"><div>${new Date(b.start_ts).toLocaleString('de-CH',{weekday:'short',day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})} — WM + TU — <strong>${escHtml(b.user_name)}</strong></div>
       <div class="row-actions"><button class="icon-btn" onclick="cancelBooking(${b.id})">🗑️</button></div></div>`;
   }).join('') || '<div style="color:var(--text2)">Keine Buchungen</div>';
 }
