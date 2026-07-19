@@ -256,7 +256,7 @@
   <div class="brand">☀️🧺 <span>Wösch</span>plan SO 16</div>
   <div class="nav">
     <button class="nav-btn" data-page="kalender" onclick="go('kalender')">📅 Kalender</button>
-    <button class="nav-btn" data-page="wochenplan" onclick="go('wochenplan')">💭 Wochenwünsche</button>
+    <button class="nav-btn" data-page="wochenplan" onclick="go('wochenplan')">📅 Wochenvorschau</button>
     <button class="nav-btn" data-page="chat" onclick="go('chat')">📋 Hausordnung</button>
     <button class="nav-btn" id="nav-admin" data-page="admin" onclick="go('admin')" style="display:none">⚙️ Admin</button>
   </div>
@@ -341,38 +341,16 @@
     <button class="refresh-btn" onclick="loadWochenplan()">↻ Aktualisieren</button>
   </div>
   <div class="pin-status-msg">
-    <b>Unterschied zum Kalender:</b> hier geht's um die <b>ganze kommende Woche</b>, nicht nur
-    die nächsten 3 Tage — und es ist <b>keine feste Buchung</b>. Einfach eintragen, wann du
-    dir den Waschraum wünschst, damit alle sich früh genug absprechen können.
-    Sobald der Tag näher rückt, machst du daraus im 📅 Kalender eine echte Buchung.
+    Trage Wünsche für alle Wochen des Jahres ein — Admin kann diese direkt zu echten Buchungen machen oder sperren.
   </div>
-  <div class="wp-week" id="wp-week"></div>
-</div>
 
-<!-- ═══ WUNSCH-MODAL ═══ -->
-<div id="wish-modal-backdrop" class="modal-backdrop" style="display:none" onclick="if(event.target===this)closeWishModal()">
-  <div class="modal-card">
-    <div class="page-title" style="font-size:1.3rem;margin-bottom:1rem">💭 Wunsch eintragen</div>
-    <div class="form-group">
-      <label>Tag</label>
-      <div id="wish-modal-date" style="font-weight:700"></div>
-    </div>
-    <div class="form-group">
-      <label>Tageszeit</label>
-      <select id="wish-daypart">
-        <option value="morgens">Morgens</option>
-        <option value="mittags">Mittags</option>
-        <option value="nachmittags">Nachmittags</option>
-        <option value="abends">Abends</option>
-      </select>
-    </div>
-    <div class="form-group">
-      <label>Notiz (optional)</label>
-      <input type="text" id="wish-note" placeholder="z.B. nur kurz" maxlength="200">
-    </div>
-    <button class="btn" onclick="saveWish()">💾 Speichern</button>
-    <button class="btn btn-secondary" onclick="closeWishModal()">Abbrechen</button>
+  <div style="margin-bottom:1.6rem">
+    <label style="color:var(--text2);font-size:0.85rem;font-weight:600;margin-bottom:8px;display:block">Jahr</label>
+    <input type="number" id="wv-year" min="2026" max="2030" value="2026" style="width:100px;padding:8px;border:1px solid var(--border);border-radius:8px;font-size:1rem"
+      onchange="loadWochenvorschau()">
   </div>
+
+  <div id="wv-weeks-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1rem"></div>
 </div>
 
 <!-- ═══ HAUSORDNUNG (BLACKBOARD) ═══ -->
@@ -676,82 +654,106 @@ async function cancelBooking(id){
   loadKalender();
 }
 
-// ─── Wunschboard ───
-const DAYPARTS = [{key:'morgens',label:'Morgens'},{key:'mittags',label:'Mittags'},{key:'nachmittags',label:'Nachmittags'},{key:'abends',label:'Abends'}];
+// ─── Wochenvorschau ───
+async function loadWochenvorschau(){
+  const year = parseInt(document.getElementById('wv-year').value);
+  const el = document.getElementById('wv-weeks-grid');
+  el.innerHTML = '<div style="padding:1rem;color:var(--text2)">Lade…</div>';
 
-async function loadWochenplan(){
-  const el = document.getElementById('wp-week');
-  el.innerHTML = '<div style="color:var(--text2);padding:1rem">Lade…</div>';
-  const today = new Date(); today.setHours(0,0,0,0);
-  const weekEnd = new Date(today); weekEnd.setDate(weekEnd.getDate()+8);
-
-  const {data:wishes, error} = await sb.from('wp_wishes').select('*')
-    .gte('wish_date', today.toISOString().slice(0,10))
-    .lt('wish_date', weekEnd.toISOString().slice(0,10))
-    .order('created_at');
-  if(error){ el.innerHTML = '<div style="color:var(--full)">Wunschboard nicht verfügbar</div>'; return; }
+  const {data:wishes, error} = await sb.from('wp_wishes').select('*').eq('year', year);
+  if(error){ el.innerHTML = `<div style="color:var(--full)">${escHtml(error.message)}</div>`; return; }
+  const wishByKW = {};
+  (wishes||[]).forEach(w=>{
+    if(!wishByKW[w.calendar_week]) wishByKW[w.calendar_week] = [];
+    wishByKW[w.calendar_week].push(w);
+  });
 
   el.innerHTML = '';
-  for(let i=0;i<7;i++){
-    const d = new Date(today); d.setDate(d.getDate()+i);
-    const dateStr = d.toISOString().slice(0,10);
-    const dayWishes = (wishes||[]).filter(w=>w.wish_date===dateStr);
-
+  for(let kw=1; kw<=52; kw++){
+    const kwWishes = wishByKW[kw] || [];
     const card = document.createElement('div');
-    card.className = 'wp-day';
-    let partsHtml = '';
-    for(const dp of DAYPARTS){
-      const chips = dayWishes.filter(w=>w.daypart===dp.key).map(w=>{
+    card.className = 'card';
+    card.style.padding = '1.2rem';
+
+    const kwText = `KW ${kw}`;
+    const wantCount = kwWishes.length;
+    const myWish = kwWishes.find(w=>w.user_name.toLowerCase()===(ME||'').toLowerCase());
+
+    let wishesHtml = '';
+    if(kwWishes.length > 0){
+      wishesHtml = kwWishes.map(w=>{
         const mine = w.user_name.toLowerCase()===(ME||'').toLowerCase();
-        const canDelete = mine || IS_ADMIN;
-        const delBtn = canDelete ? `<button onclick="removeWish(${w.id})" title="${mine?'Eigenen Wunsch löschen':'Wunsch löschen (Admin)'}">🗑️</button>` : '';
-        const note = w.note ? ` — ${escHtml(w.note)}` : '';
-        return `<span class="wp-chip ${mine?'mine':''}">${mine?'Du':escHtml(w.user_name)}${note}${delBtn}</span>`;
-      }).join('') || '<span style="color:var(--text2);font-size:0.78rem">–</span>';
-      partsHtml += `<div class="wp-part"><div class="wp-part-label">${dp.label}</div>${chips}</div>`;
+        const lockIcon = w.is_locked ? '🔒' : '';
+        const delBtn = (mine || IS_ADMIN) ? `<button class="icon-btn" onclick="removeWish(${w.id})" style="font-size:0.8rem">🗑️</button>` : '';
+        return `<div style="display:flex;justify-content:space-between;align-items:center;margin:0.4rem 0;font-size:0.85rem">
+          <span>${lockIcon} <b>${mine?'Du':escHtml(w.user_name)}</b>${w.note ? ` — ${escHtml(w.note)}` : ''}</span>
+          ${delBtn}
+        </div>`;
+      }).join('');
     }
-    card.innerHTML = `<div class="wp-day-head"><div class="wp-day-name">${i===0?'Heute':d.toLocaleDateString('de-CH',{weekday:'long'})}</div>
-      <div class="wp-day-date">${d.toLocaleDateString('de-CH',{day:'numeric',month:'short'})}</div></div>
-      ${partsHtml}
-      <button class="wp-add-btn" onclick="addWish('${dateStr}')">+ Wunsch eintragen</button>`;
+
+    const adminBtns = IS_ADMIN && kwWishes.length > 0 ? `
+      <div style="margin-top:1rem;border-top:1px solid var(--border);padding-top:0.8rem;display:flex;gap:0.6rem;flex-wrap:wrap">
+        <button class="btn-sm" onclick="promoteWishToBooking(${kwWishes[0].id},9)" style="flex:1;font-size:0.8rem;padding:6px">📌 Fix 9h</button>
+        <button class="btn-sm" onclick="promoteWishToBooking(${kwWishes[0].id},14)" style="flex:1;font-size:0.8rem;padding:6px">📌 Fix 14h</button>
+        <button class="btn-sm btn-secondary" onclick="toggleWishLock(${kwWishes[0].id},${!kwWishes[0].is_locked})" style="flex:1;font-size:0.8rem;padding:6px">${kwWishes[0].is_locked?'🔓 Freigeben':'🔒 Sperren'}</button>
+      </div>
+    ` : '';
+
+    const inputField = !myWish && !kwWishes.some(w=>w.is_locked && w.user_name.toLowerCase()===(ME||'').toLowerCase()) ? `
+      <div style="margin-top:0.8rem;display:flex;gap:0.6rem">
+        <input type="text" id="wish-note-${kw}" placeholder="z.B. Freitag" maxlength="30" style="flex:1;padding:6px;border:1px solid var(--border);border-radius:6px;font-size:0.85rem">
+        <button onclick="addWish(${kw},${year})" style="padding:6px 12px;background:var(--ok);border:none;color:#fff;border-radius:6px;cursor:pointer;font-size:0.85rem;font-weight:600">+</button>
+      </div>
+    ` : '';
+
+    card.innerHTML = `
+      <div style="font-weight:700;margin-bottom:0.8rem">${kwText}</div>
+      <div style="font-size:0.9rem;color:var(--text2);margin-bottom:0.8rem">${wantCount} Wunsch${wantCount!==1?'e':''}</div>
+      ${wishesHtml}
+      ${inputField}
+      ${adminBtns}
+    `;
     el.appendChild(card);
   }
 }
 
-let wishModalDate = null;
-
-function addWish(dateStr){
-  wishModalDate = dateStr;
-  const d = new Date(dateStr + 'T00:00:00');
-  document.getElementById('wish-modal-date').textContent = d.toLocaleDateString('de-CH',{weekday:'long',day:'numeric',month:'long'});
-  document.getElementById('wish-daypart').value = 'morgens';
-  document.getElementById('wish-note').value = '';
-  document.getElementById('wish-modal-backdrop').style.display = 'flex';
-}
-
-function closeWishModal(){
-  document.getElementById('wish-modal-backdrop').style.display = 'none';
-  wishModalDate = null;
-}
-
-async function saveWish(){
-  const dp = document.getElementById('wish-daypart').value;
-  const note = document.getElementById('wish-note').value.trim() || null;
+async function addWish(kw, year){
+  const note = document.getElementById(`wish-note-${kw}`).value.trim();
+  if(!note) return;
   loading(true);
-  const {error} = await sb.rpc('wp_add_wish',{p_name:ME,p_pin:MY_PIN,p_date:wishModalDate,p_daypart:dp,p_note:note});
+  const {error} = await sb.from('wp_wishes').insert({user_name:ME, calendar_week:kw, year:year, note:note, created_at:new Date().toISOString()});
   loading(false);
   if(error){ toast(error.message,'e'); return; }
   toast('Wunsch gespeichert ☀️');
-  closeWishModal();
-  loadWochenplan();
+  loadWochenvorschau();
 }
 
 async function removeWish(id){
-  if(!confirm('Diesen Wunsch wirklich löschen?')) return;
-  const {error} = await sb.rpc('wp_remove_wish',{p_name:ME,p_pin:MY_PIN,p_wish_id:id});
+  if(!confirm('Wunsch löschen?')) return;
+  const {error} = await sb.from('wp_wishes').delete().eq('id', id);
   if(error){ toast(error.message,'e'); return; }
   toast('Wunsch gelöscht');
-  loadWochenplan();
+  loadWochenvorschau();
+}
+
+async function toggleWishLock(id, lock){
+  loading(true);
+  const {error} = await sb.rpc('wp_lock_wish',{p_admin_name:ME,p_admin_pin:MY_PIN,p_wish_id:id,p_lock:lock});
+  loading(false);
+  if(error){ toast(error.message,'e'); return; }
+  toast(lock ? 'Wunsch gesperrt' : 'Wunsch freigegeben');
+  loadWochenvorschau();
+}
+
+async function promoteWishToBooking(id, slotHour){
+  if(!confirm(`Wunsch in Buchungen (${slotHour}:00–${slotHour+2}:00) für die ganze Woche umwandeln?`)) return;
+  loading(true);
+  const {error} = await sb.rpc('wp_promote_wish_to_booking',{p_admin_name:ME,p_admin_pin:MY_PIN,p_wish_id:id,p_slot_hour:slotHour});
+  loading(false);
+  if(error){ toast(error.message,'e'); return; }
+  toast('Wunsch zu Buchungen gemacht! 📅');
+  loadWochenvorschau();
 }
 
 // ─── Hausordnung (Blackboard) ───
