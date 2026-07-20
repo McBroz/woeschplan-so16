@@ -233,6 +233,22 @@
     border-radius: 8px; padding: 3px 7px; font-weight: 700; display: flex; align-items: center; gap: 4px; }
   .badge-window { display: inline-flex; align-items: center; gap: 6px; font-size: 0.78rem; background: linear-gradient(135deg, rgba(62,155,196,0.1), rgba(159,220,238,0.16));
     color: var(--sky-deep); border: 1px solid rgba(62,155,196,0.2); border-radius: 12px; padding: 9px 15px; font-weight: 600; line-height: 1.5; }
+  /* ─── Info-Strip (Kalender-Hinweise) ─── */
+  .info-strip { display: flex; align-items: stretch; gap: 0.7rem; flex-wrap: wrap; background: linear-gradient(135deg, #FFF6E4 0%, #FFEEDB 100%);
+    border: 1px solid var(--border); border-radius: 18px; padding: 0.9rem 1rem; box-shadow: var(--shadow-sm); }
+  .info-chip { display: flex; align-items: center; gap: 10px; flex: 1 1 180px; background: rgba(255,255,255,0.65); border: 1px solid rgba(255,255,255,0.8);
+    border-radius: 13px; padding: 0.6rem 0.8rem; }
+  .info-chip .ic-emoji { font-size: 1.3rem; flex-shrink: 0; letter-spacing: -2px; }
+  .info-chip .ic-text { display: flex; flex-direction: column; line-height: 1.25; }
+  .info-chip .ic-text b { font-size: 0.86rem; color: var(--text); font-family: 'Baloo 2', sans-serif; }
+  .info-chip .ic-text span { font-size: 0.72rem; color: var(--text2); }
+  .info-cta { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; flex: 1 1 150px;
+    background: linear-gradient(135deg, var(--sun) 0%, var(--amber) 100%); border: none; color: #fff; border-radius: 13px;
+    padding: 0.6rem 0.9rem; cursor: pointer; font-weight: 700; box-shadow: 0 6px 16px rgba(255,140,66,0.32); transition: all 0.18s; font-family: inherit; }
+  .info-cta:hover { transform: translateY(-2px); box-shadow: 0 9px 22px rgba(255,140,66,0.45); }
+  .info-cta span:first-child { font-size: 0.82rem; }
+  .info-cta .ic-arrow { font-size: 0.92rem; }
+  @media (max-width: 560px){ .info-chip, .info-cta { flex-basis: 100%; } }
   .cal-wish-banner { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 12px; background: linear-gradient(135deg, rgba(255,194,60,0.1), rgba(255,122,60,0.07));
     border: 1px solid rgba(255,158,34,0.22); border-radius: 14px; padding: 10px 14px; }
   .cwb-label { font-weight: 700; font-size: 0.82rem; color: var(--sun-deep); white-space: nowrap; }
@@ -265,6 +281,15 @@
   .wv-legend span { display: inline-flex; align-items: center; gap: 5px; }
   .wv-dot { width: 9px; height: 9px; border-radius: 50%; display: inline-block; }
 
+  .wv-past { margin-bottom: 1.6rem; border: 1px dashed var(--border); border-radius: 16px; background: rgba(255,255,255,0.4); overflow: hidden; }
+  .wv-past > summary { cursor: pointer; padding: 0.9rem 1.2rem; font-weight: 700; font-size: 0.9rem; color: var(--text2);
+    list-style: none; display: flex; align-items: center; gap: 8px; user-select: none; }
+  .wv-past > summary::-webkit-details-marker { display: none; }
+  .wv-past > summary::before { content: '▸'; transition: transform 0.2s; display: inline-block; }
+  .wv-past[open] > summary::before { transform: rotate(90deg); }
+  .wv-past > summary:hover { color: var(--sun-deep); }
+  .wv-past-body { padding: 0 1.2rem 0.6rem; }
+  .wv-past-body .wv-month:last-child { margin-bottom: 0.6rem; }
   .wv-month { margin-bottom: 1.6rem; }
   .wv-month-head { font-family: 'Baloo 2', sans-serif; font-weight: 800; font-size: 1.15rem; color: var(--text);
     margin-bottom: 0.8rem; display: flex; align-items: center; gap: 8px; }
@@ -531,7 +556,24 @@
 
   <div class="day-tabs" id="day-tabs"></div>
   <div class="occupancy-banner" id="occ-banner"></div>
-  <div class="badge-window">🕐 <b>Feste Buchung</b> für <b style="margin:0 3px">heute + die folgenden 3 Tage</b> — fair für alle 12 Personen. WM + TU werden immer gemeinsam gebucht. Weiter im Voraus planen? → 🗓️ Wochenvorschau</div>
+  <div class="info-strip">
+    <div class="info-chip">
+      <span class="ic-emoji">📅</span>
+      <div class="ic-text"><b>Heute + 3 Tage</b><span>buchbar im Voraus</span></div>
+    </div>
+    <div class="info-chip">
+      <span class="ic-emoji">🤝</span>
+      <div class="ic-text"><b>Fair für alle 6 Parteien</b><span>keine Wochen-Blockaden</span></div>
+    </div>
+    <div class="info-chip">
+      <span class="ic-emoji">🌀🔥</span>
+      <div class="ic-text"><b>WM + TU zusammen</b><span>ein Klick, ein Zeitfenster</span></div>
+    </div>
+    <button class="info-cta" onclick="go('wochenplan')">
+      <span>Weiter voraus planen</span>
+      <span class="ic-arrow">🗓️ →</span>
+    </button>
+  </div>
   <div id="cal-wishes"></div>
   <div style="height:14px"></div>
   <div class="slot-grid" id="slot-grid"></div>
@@ -996,59 +1038,108 @@ async function loadWochenvorschau(){
     (byMonth[m] = byMonth[m] || []).push({kw, monday});
   }
 
-  el.innerHTML = '';
+  // Eine einzelne KW-Karte als HTML bauen
+  function buildWeekCard(kw, monday){
+    const sunday = new Date(monday); sunday.setUTCDate(monday.getUTCDate()+6);
+    const kwWishes = wishByKW[kw] || [];
+    const isCurrent = (year===curYear && kw===curKW);
+    const isPast = sunday < now && !isCurrent;
+    const myWish = kwWishes.find(w=>w.user_name.toLowerCase()===(ME||'').toLowerCase());
+    const isLockedForMe = kwWishes.some(w=>w.is_locked);
+
+    const dateRange = `${monday.getUTCDate()}.${(monday.getUTCMonth()+1)}. – ${sunday.getUTCDate()}.${(sunday.getUTCMonth()+1)}.`;
+
+    const wishesHtml = kwWishes.map(w=>{
+      const mine = w.user_name.toLowerCase()===(ME||'').toLowerCase();
+      const del = (mine || IS_ADMIN) ? `<button class="ww-del" title="löschen" onclick="removeWish(${w.id})">✕</button>` : '';
+      return `<div class="wv-wish ${mine?'mine':''} ${w.is_locked?'locked':''}">
+        ${w.is_locked?'🔒':'🧺'} <span class="ww-name">${mine?'Du':escHtml(w.user_name)}</span>
+        <span class="ww-note">${w.note?escHtml(w.note):''}</span>${del}</div>`;
+    }).join('');
+
+    let actionHtml = '';
+    if(isLockedForMe && !IS_ADMIN){
+      actionHtml = `<div class="wv-locked-note">🔒 vom Admin fixiert</div>`;
+    } else if(!myWish && !isPast){
+      actionHtml = `<div class="wv-add">
+        <input type="text" id="wish-note-${kw}" placeholder="z.B. Freitag Abend" maxlength="30" onkeydown="if(event.key==='Enter')addWish(${kw},${year})">
+        <button title="Wunsch eintragen" onclick="addWish(${kw},${year})">＋</button></div>`;
+    } else if(myWish && !IS_ADMIN){
+      actionHtml = `<div class="wv-locked-note" style="color:var(--sky-deep)">✓ dein Wunsch ist eingetragen</div>`;
+    }
+
+    const adminHtml = (IS_ADMIN && kwWishes.length>0) ? `<div class="wv-admin">
+        <button class="fix" onclick="promoteWishToBooking(${kwWishes[0].id})">📌 Fixieren</button>
+        <button onclick="toggleWishLock(${kwWishes[0].id},${!kwWishes[0].is_locked})">${kwWishes[0].is_locked?'🔓 Frei':'🔒 Sperren'}</button>
+      </div>` : '';
+
+    return `<div class="wv-week ${isCurrent?'current':''} ${isPast?'past':''} ${kwWishes.length?'haswish':''}">
+      <div class="wv-week-head">
+        <div class="wv-kw">KW ${kw}${isCurrent?'<span class="wv-now">jetzt</span>':''}</div>
+      </div>
+      <div class="wv-dates">${dateRange}</div>
+      <div class="wv-count">${kwWishes.length===0?'noch keine Wünsche':kwWishes.length+' Wunsch'+(kwWishes.length!==1?'e':'')}</div>
+      <div class="wv-wishlist">${wishesHtml}</div>
+      ${actionHtml}
+      ${adminHtml}
+    </div>`;
+  }
+
+  // Vergangene Wochen (Sonntag < heute, ausser aktuelle) sammeln – werden eingeklappt.
+  // Aktuelle + kommende Wochen normal nach Monat gruppiert anzeigen.
+  const pastByMonth = {}, activeByMonth = {};
+  const pastKWs = [];
   for(let m=0; m<12; m++){
     if(!byMonth[m]) continue;
+    for(const wk of byMonth[m]){
+      const sunday = new Date(wk.monday); sunday.setUTCDate(wk.monday.getUTCDate()+6);
+      const isCurrent = (year===curYear && wk.kw===curKW);
+      const isPast = sunday < now && !isCurrent;
+      if(isPast){
+        (pastByMonth[m] = pastByMonth[m] || []).push(wk);
+        pastKWs.push(wk.kw);
+      } else {
+        (activeByMonth[m] = activeByMonth[m] || []).push(wk);
+      }
+    }
+  }
+  const pastCount = pastKWs.length;
+  const firstPastKW = pastCount ? Math.min(...pastKWs) : 0;
+  const lastPastKW = pastCount ? Math.max(...pastKWs) : 0;
+
+  el.innerHTML = '';
+
+  // Eingeklappter Block für vergangene Wochen
+  if(pastCount > 0){
+    let pastHtml = '';
+    for(let m=0; m<12; m++){
+      if(!pastByMonth[m]) continue;
+      const cards = pastByMonth[m].map(wk=>buildWeekCard(wk.kw, wk.monday)).join('');
+      pastHtml += `<div class="wv-month"><div class="wv-month-head">${MONTH_NAMES[m]} ${year}</div><div class="wv-grid">${cards}</div></div>`;
+    }
+    const det = document.createElement('details');
+    det.className = 'wv-past';
+    det.innerHTML = `<summary>🕓 Vergangene Wochen (KW ${firstPastKW}–${lastPastKW}) anzeigen</summary><div class="wv-past-body">${pastHtml}</div>`;
+    el.appendChild(det);
+  }
+
+  // Aktuelle + kommende Wochen
+  let anyActive = false;
+  for(let m=0; m<12; m++){
+    if(!activeByMonth[m]) continue;
+    anyActive = true;
+    const cards = activeByMonth[m].map(wk=>buildWeekCard(wk.kw, wk.monday)).join('');
     const monthWrap = document.createElement('div');
     monthWrap.className = 'wv-month';
-    let cardsHtml = '';
-    for(const {kw, monday} of byMonth[m]){
-      const sunday = new Date(monday); sunday.setUTCDate(monday.getUTCDate()+6);
-      const kwWishes = wishByKW[kw] || [];
-      const isCurrent = (year===curYear && kw===curKW);
-      const isPast = sunday < now && !isCurrent;
-      const myWish = kwWishes.find(w=>w.user_name.toLowerCase()===(ME||'').toLowerCase());
-      const isLockedForMe = kwWishes.some(w=>w.is_locked);
-
-      const dateRange = `${monday.getUTCDate()}.${(monday.getUTCMonth()+1)}. – ${sunday.getUTCDate()}.${(sunday.getUTCMonth()+1)}.`;
-
-      const wishesHtml = kwWishes.map(w=>{
-        const mine = w.user_name.toLowerCase()===(ME||'').toLowerCase();
-        const del = (mine || IS_ADMIN) ? `<button class="ww-del" title="löschen" onclick="removeWish(${w.id})">✕</button>` : '';
-        return `<div class="wv-wish ${mine?'mine':''} ${w.is_locked?'locked':''}">
-          ${w.is_locked?'🔒':'🧺'} <span class="ww-name">${mine?'Du':escHtml(w.user_name)}</span>
-          <span class="ww-note">${w.note?escHtml(w.note):''}</span>${del}</div>`;
-      }).join('');
-
-      let actionHtml = '';
-      if(isLockedForMe && !IS_ADMIN){
-        actionHtml = `<div class="wv-locked-note">🔒 vom Admin fixiert</div>`;
-      } else if(!myWish && !isPast){
-        actionHtml = `<div class="wv-add">
-          <input type="text" id="wish-note-${kw}" placeholder="z.B. Freitag Abend" maxlength="30" onkeydown="if(event.key==='Enter')addWish(${kw},${year})">
-          <button title="Wunsch eintragen" onclick="addWish(${kw},${year})">＋</button></div>`;
-      } else if(myWish && !IS_ADMIN){
-        actionHtml = `<div class="wv-locked-note" style="color:var(--sky-deep)">✓ dein Wunsch ist eingetragen</div>`;
-      }
-
-      const adminHtml = (IS_ADMIN && kwWishes.length>0) ? `<div class="wv-admin">
-          <button class="fix" onclick="promoteWishToBooking(${kwWishes[0].id})">📌 Fixieren</button>
-          <button onclick="toggleWishLock(${kwWishes[0].id},${!kwWishes[0].is_locked})">${kwWishes[0].is_locked?'🔓 Frei':'🔒 Sperren'}</button>
-        </div>` : '';
-
-      cardsHtml += `<div class="wv-week ${isCurrent?'current':''} ${isPast?'past':''} ${kwWishes.length?'haswish':''}">
-        <div class="wv-week-head">
-          <div class="wv-kw">KW ${kw}${isCurrent?'<span class="wv-now">jetzt</span>':''}</div>
-        </div>
-        <div class="wv-dates">${dateRange}</div>
-        <div class="wv-count">${kwWishes.length===0?'noch keine Wünsche':kwWishes.length+' Wunsch'+(kwWishes.length!==1?'e':'')}</div>
-        <div class="wv-wishlist">${wishesHtml}</div>
-        ${actionHtml}
-        ${adminHtml}
-      </div>`;
-    }
-    monthWrap.innerHTML = `<div class="wv-month-head">${MONTH_NAMES[m]} ${year}</div><div class="wv-grid">${cardsHtml}</div>`;
+    monthWrap.innerHTML = `<div class="wv-month-head">${MONTH_NAMES[m]} ${year}</div><div class="wv-grid">${cards}</div>`;
     el.appendChild(monthWrap);
+  }
+  if(!anyActive){
+    const done = document.createElement('div');
+    done.className = 'empty-hint';
+    done.style.cssText = 'text-align:center;padding:1.4rem';
+    done.innerHTML = `Für ${year} sind alle Wochen vorbei — mit ›  aufs nächste Jahr wechseln.`;
+    el.appendChild(done);
   }
 }
 
