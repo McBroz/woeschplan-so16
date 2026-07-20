@@ -308,11 +308,14 @@
   .wv-count { font-size: 0.76rem; color: var(--text2); margin-bottom: 0.6rem; }
   .wv-wishlist { display: flex; flex-direction: column; gap: 5px; margin-bottom: 0.7rem; }
   .wv-wish { display: flex; align-items: center; gap: 6px; font-size: 0.84rem; background: var(--cream);
-    border: 1px solid var(--border); border-radius: 10px; padding: 5px 9px; }
+    border: 1px solid var(--border); border-radius: 10px; padding: 5px 9px; cursor: pointer; transition: background 0.15s; }
+  .wv-wish:hover { background: var(--card2); }
   .wv-wish.mine { background: rgba(46,155,201,0.12); border-color: rgba(46,155,201,0.25); }
   .wv-wish.locked { background: rgba(255,158,34,0.1); border-color: rgba(255,158,34,0.3); }
-  .wv-wish .ww-name { font-weight: 700; }
+  .wv-wish .ww-name { font-weight: 700; flex-shrink: 0; }
   .wv-wish .ww-note { color: var(--text2); flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .wv-wish.expanded { align-items: flex-start; }
+  .wv-wish.expanded .ww-note { white-space: normal; overflow: visible; text-overflow: clip; word-break: break-word; }
   .wv-wish .ww-del { margin-left: auto; background: none; border: none; cursor: pointer; color: var(--full); font-size: 0.85rem; padding: 0; flex-shrink: 0; }
   .wv-add { display: flex; gap: 6px; margin-top: auto; }
   .wv-add input { padding: 7px 10px; font-size: 0.82rem; border-radius: 10px; }
@@ -1051,10 +1054,12 @@ async function loadWochenvorschau(){
 
     const wishesHtml = kwWishes.map(w=>{
       const mine = w.user_name.toLowerCase()===(ME||'').toLowerCase();
-      const del = (mine || IS_ADMIN) ? `<button class="ww-del" title="löschen" onclick="removeWish(${w.id})">✕</button>` : '';
-      return `<div class="wv-wish ${mine?'mine':''} ${w.is_locked?'locked':''}">
+      const del = (mine || IS_ADMIN) ? `<button class="ww-del" title="löschen" onclick="event.stopPropagation();removeWish(${w.id})">✕</button>` : '';
+      const noteTxt = w.note ? escHtml(w.note) : '(keine Notiz)';
+      const titleAttr = escHtml(`${mine?'Du':w.user_name}: ${w.note||'(keine Notiz)'}`).replace(/"/g,'&quot;');
+      return `<div class="wv-wish ${mine?'mine':''} ${w.is_locked?'locked':''}" title="${titleAttr}" onclick="this.classList.toggle('expanded')">
         ${w.is_locked?'🔒':'🧺'} <span class="ww-name">${mine?'Du':escHtml(w.user_name)}</span>
-        <span class="ww-note">${w.note?escHtml(w.note):''}</span>${del}</div>`;
+        <span class="ww-note">${noteTxt}</span>${del}</div>`;
     }).join('');
 
     let actionHtml = '';
