@@ -127,7 +127,23 @@ begin
   return jsonb_build_object('ok', true);
 end; $$;
 
+-- RPC: Admin bearbeitet die Notiz eines Wunsches
+create or replace function public.wp_edit_wish(
+  p_admin_name text, p_admin_pin text, p_wish_id bigint, p_note text
+)
+returns jsonb language plpgsql security definer as $$
+declare v_admin public.wp_users;
+begin
+  select * into v_admin from public.wp_users where lower(name) = lower(trim(p_admin_name));
+  if not found or v_admin.pin <> p_admin_pin or not v_admin.is_admin then
+    raise exception 'Kein Admin-Zugriff';
+  end if;
+  update public.wp_wishes set note = nullif(trim(p_note), '') where id = p_wish_id;
+  return jsonb_build_object('ok', true);
+end; $$;
+
 grant execute on function public.wp_lock_wish(text, text, bigint, boolean) to anon;
 grant execute on function public.wp_promote_wish_to_booking(text, text, bigint, int) to anon;
 grant execute on function public.wp_add_wish_kw(text, text, int, int, text) to anon;
 grant execute on function public.wp_del_wish(text, text, bigint) to anon;
+grant execute on function public.wp_edit_wish(text, text, bigint, text) to anon;

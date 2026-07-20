@@ -337,6 +337,20 @@
   .wv-admin button.fix { background: linear-gradient(135deg, var(--sun) 0%, var(--amber) 100%); color: #fff; border-color: transparent; }
   .wv-locked-note { font-size: 0.76rem; color: var(--sun-deep); font-weight: 600; display: flex; align-items: center; gap: 5px; margin-top: 0.3rem; }
 
+  /* ─── Admin: Wünsche verwalten ─── */
+  .aw-row { display: flex; align-items: center; gap: 12px; padding: 0.8rem 0.9rem; border: 1px solid var(--border); border-radius: 13px;
+    margin-bottom: 0.7rem; background: var(--cream); flex-wrap: wrap; }
+  .aw-row.locked { background: rgba(255,158,34,0.08); border-color: rgba(255,158,34,0.3); }
+  .aw-main { flex: 1; min-width: 200px; }
+  .aw-line1 { display: flex; align-items: center; gap: 7px; flex-wrap: wrap; font-size: 0.9rem; margin-bottom: 3px; }
+  .aw-rank { flex-shrink: 0; width: 22px; height: 22px; border-radius: 50%; background: linear-gradient(135deg, var(--sun) 0%, var(--amber) 100%);
+    color: #fff; font-weight: 800; font-size: 0.72rem; display: inline-flex; align-items: center; justify-content: center; }
+  .aw-range { color: var(--text2); font-size: 0.8rem; }
+  .aw-lock { font-size: 0.72rem; font-weight: 700; color: var(--sun-deep); background: rgba(255,158,34,0.15); border-radius: 20px; padding: 2px 9px; }
+  .aw-line2 { font-size: 0.92rem; margin-bottom: 3px; }
+  .aw-meta { font-size: 0.74rem; color: var(--text2); }
+  .aw-actions { display: flex; gap: 6px; flex-shrink: 0; }
+
   /* ─── Hausordnung (Blackboard) ─── */
   .chat-box { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow-sm); }
   .chat-box.blackboard { background: radial-gradient(ellipse at 25% 15%, #33513e 0%, #1f3327 65%); border: 12px solid #6b4423;
@@ -638,6 +652,11 @@
   <div class="card" style="margin-bottom:1.4rem">
     <h3 style="margin-bottom:0.8rem">📊 Statistik &mdash; wer wäscht wie viel</h3>
     <div id="admin-stats"></div>
+  </div>
+  <div class="card" style="margin-bottom:1.4rem">
+    <h3 style="margin-bottom:0.3rem">🗓️ Wochenwünsche verwalten</h3>
+    <div style="font-size:0.82rem;color:var(--text2);margin-bottom:1rem">Alle offenen Wünsche mit vollständigen Infos. Sperren, reservieren (→ Buchung), freigeben, bearbeiten und löschen sind nur hier möglich.</div>
+    <div id="admin-wishes"></div>
   </div>
   <div class="card" style="margin-bottom:1.4rem">
     <h3 style="margin-bottom:0.8rem">Nutzer &amp; Codes</h3>
@@ -1003,35 +1022,6 @@ async function loadKalender(){
   }
 
   renderOccBanner(bookedCount, totalSlots);
-  renderCalWishes(date);
-}
-
-// Wünsche der angezeigten Woche als Vorschau im Kalender (nicht verbindlich).
-// Sortiert nach Eintragszeit: wer zuerst eingetragen hat, steht oben (Nr. 1) —
-// so sind Vorrang & Kollisionen für alle offen ersichtlich.
-async function renderCalWishes(date){
-  const el = document.getElementById('cal-wishes');
-  el.innerHTML = '';
-  const kw = isoWeek(date), year = date.getFullYear();
-  const {data:wishes} = await sb.from('wp_wishes').select('*').eq('year', year).eq('calendar_week', kw)
-    .order('created_at',{ascending:true});
-  if(!wishes || !wishes.length) return;
-  const rows = wishes.map((w,i)=>{
-    const mine = w.user_name.toLowerCase()===(ME||'').toLowerCase();
-    return `<div class="cwl-row ${mine?'mine':''}">
-      <span class="cwl-rank">${i+1}</span>
-      <span class="cwl-name">${w.is_locked?'🔒 ':''}${mine?'Du':escHtml(w.user_name)}</span>
-      <span class="cwl-note">${w.note?escHtml(w.note):'—'}</span>
-    </div>`;
-  }).join('');
-  const many = wishes.length > 1;
-  el.innerHTML = `<div class="cal-wish-banner">
-    <div class="cwb-top">
-      <span class="cwb-label">💭 Waschwünsche für KW ${kw}</span>
-      <span class="cwb-hint">${many?'Reihenfolge = wer zuerst kam · ':''}unverbindliche Vorschau</span>
-    </div>
-    <div class="cwl-list">${rows}</div>
-  </div>`;
 }
 
 function renderOccBanner(booked, total){
@@ -1137,10 +1127,8 @@ async function loadWochenvorschau(){
       actionHtml = `<div class="wv-locked-note" style="color:var(--sky-deep)">✓ dein Wunsch ist eingetragen</div>`;
     }
 
-    const adminHtml = (IS_ADMIN && kwWishes.length>0) ? `<div class="wv-admin">
-        <button class="fix" onclick="promoteWishToBooking(${kwWishes[0].id})">📌 Fixieren</button>
-        <button onclick="toggleWishLock(${kwWishes[0].id},${!kwWishes[0].is_locked})">${kwWishes[0].is_locked?'🔓 Frei':'🔒 Sperren'}</button>
-      </div>` : '';
+    const adminHint = (IS_ADMIN && kwWishes.length>0)
+      ? `<div class="wv-locked-note" style="color:var(--text2)">⚙️ verwalten im Admin-Bereich</div>` : '';
 
     return `<div class="wv-week ${isCurrent?'current':''} ${isPast?'past':''} ${kwWishes.length?'haswish':''}">
       <div class="wv-week-head">
@@ -1150,7 +1138,7 @@ async function loadWochenvorschau(){
       <div class="wv-count">${kwWishes.length===0?'noch keine Wünsche':kwWishes.length+' Wunsch'+(kwWishes.length!==1?'e':'')}</div>
       <div class="wv-wishlist">${wishesHtml}</div>
       ${actionHtml}
-      ${adminHtml}
+      ${adminHint}
     </div>`;
   }
 
@@ -1224,6 +1212,12 @@ async function addWish(kw, year){
   loadWochenvorschau();
 }
 
+// Aktualisiert die gerade sichtbare Wunsch-Ansicht (Wochenvorschau ODER Admin)
+function refreshWishViews(){
+  if(document.getElementById('page-admin').classList.contains('active')) loadAdminWishes();
+  else loadWochenvorschau();
+}
+
 async function removeWish(id){
   if(!confirm('Wunsch löschen?')) return;
   loading(true);
@@ -1231,7 +1225,7 @@ async function removeWish(id){
   loading(false);
   if(error){ toast(error.message,'e'); return; }
   toast('Wunsch gelöscht');
-  loadWochenvorschau();
+  refreshWishViews();
 }
 
 async function toggleWishLock(id, lock){
@@ -1240,11 +1234,11 @@ async function toggleWishLock(id, lock){
   loading(false);
   if(error){ toast(error.message,'e'); return; }
   toast(lock ? 'Woche gesperrt 🔒' : 'Woche freigegeben 🔓');
-  loadWochenvorschau();
+  refreshWishViews();
 }
 
 async function promoteWishToBooking(id){
-  const hourStr = prompt('Zu welcher Uhrzeit soll die ganze Woche (Mo–Sa) fix gebucht werden?\nGib die Startstunde ein (07, 09, 11, 13, 15, 17, 19).', '09');
+  const hourStr = prompt('Zu welcher Uhrzeit soll die ganze Woche (Mo–Sa) fix reserviert/gebucht werden?\nStartstunde eingeben (07, 09, 11, 13, 15, 17, 19).', '09');
   if(hourStr === null) return;
   const slotHour = parseInt(hourStr);
   if(isNaN(slotHour) || slotHour < 7 || slotHour > 21 || slotHour % 2 === 0){
@@ -1255,8 +1249,57 @@ async function promoteWishToBooking(id){
   const {error} = await sb.rpc('wp_promote_wish_to_booking',{p_admin_name:ME,p_admin_pin:MY_PIN,p_wish_id:id,p_slot_hour:slotHour});
   loading(false);
   if(error){ toast(error.message,'e'); return; }
-  toast('Wunsch zu Buchungen gemacht! 📅');
-  loadWochenvorschau();
+  toast('Wunsch reserviert & gebucht! 📅');
+  refreshWishViews();
+}
+
+async function adminEditWish(id){
+  const note = prompt('Notiz des Wunsches bearbeiten:');
+  if(note === null) return;
+  loading(true);
+  const {error} = await sb.rpc('wp_edit_wish',{p_admin_name:ME,p_admin_pin:MY_PIN,p_wish_id:id,p_note:note});
+  loading(false);
+  if(error){ toast(error.message,'e'); return; }
+  toast('Wunsch aktualisiert ✏️');
+  loadAdminWishes();
+}
+
+// Admin: alle offenen Wünsche mit vollen Infos + Verwaltung
+async function loadAdminWishes(){
+  const el = document.getElementById('admin-wishes');
+  el.innerHTML = '<div style="color:var(--text2)">Lade…</div>';
+  const {data:wishes, error} = await sb.from('wp_wishes').select('*')
+    .order('year',{ascending:true}).order('calendar_week',{ascending:true}).order('created_at',{ascending:true});
+  if(error){ el.innerHTML = `<div style="color:var(--full)">${escHtml(error.message)}</div>`; return; }
+  const today = new Date(); today.setHours(0,0,0,0);
+  const upcoming = (wishes||[]).filter(w=>{
+    const mo = mondayOfISOWeek(w.calendar_week, w.year); const su = new Date(mo); su.setUTCDate(mo.getUTCDate()+6);
+    return su >= today;
+  });
+  if(!upcoming.length){ el.innerHTML = '<div style="color:var(--text2)">Keine offenen Wünsche.</div>'; return; }
+  const rankByKW = {};
+  el.innerHTML = upcoming.map(w=>{
+    const key = w.year+'-'+w.calendar_week;
+    rankByKW[key] = (rankByKW[key]||0)+1;
+    const rank = rankByKW[key];
+    const mo = mondayOfISOWeek(w.calendar_week, w.year); const su = new Date(mo); su.setUTCDate(mo.getUTCDate()+6);
+    const range = `${mo.getUTCDate()}.${mo.getUTCMonth()+1}. – ${su.getUTCDate()}.${su.getUTCMonth()+1}.${w.year}`;
+    const created = w.created_at ? new Date(w.created_at).toLocaleString('de-CH',{weekday:'short',day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}) : '–';
+    const lockBadge = w.is_locked ? `<span class="aw-lock">🔒 gesperrt${w.locked_by?' · '+escHtml(w.locked_by):''}</span>` : '';
+    return `<div class="aw-row ${w.is_locked?'locked':''}">
+      <div class="aw-main">
+        <div class="aw-line1"><span class="aw-rank">#${rank}</span> <b>KW ${w.calendar_week}</b> <span class="aw-range">${range}</span> ${lockBadge}</div>
+        <div class="aw-line2">🧺 <b>${escHtml(w.user_name)}</b> — ${w.note?escHtml(w.note):'<i style="color:var(--text2)">keine Notiz</i>'}</div>
+        <div class="aw-meta">🕓 eingetragen: ${created}</div>
+      </div>
+      <div class="aw-actions">
+        <button class="icon-btn" title="Notiz bearbeiten" onclick="adminEditWish(${w.id})">✏️</button>
+        <button class="icon-btn" title="${w.is_locked?'Freigeben':'Sperren / reservieren'}" onclick="toggleWishLock(${w.id},${!w.is_locked})">${w.is_locked?'🔓':'🔒'}</button>
+        <button class="icon-btn" title="Reservieren → feste Buchung Mo–Sa" onclick="promoteWishToBooking(${w.id})">📌</button>
+        <button class="icon-btn" title="Löschen" onclick="removeWish(${w.id})">🗑️</button>
+      </div>
+    </div>`;
+  }).join('');
 }
 
 // ─── Hausordnung (Blackboard) ───
@@ -1325,6 +1368,7 @@ async function loadAdmin(){
   loading(true);
   const {data,error} = await sb.rpc('wp_admin_action',{p_admin_name:ME,p_admin_pin:MY_PIN,p_action:'list_users'});
   loadStats();
+  loadAdminWishes();
   loading(false);
   const usersEl = document.getElementById('admin-users');
   if(error){ usersEl.innerHTML = `<div style="color:var(--full)">${escHtml(error.message)}</div>`; return; }
