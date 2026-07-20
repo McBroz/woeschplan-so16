@@ -249,13 +249,20 @@
   .info-cta span:first-child { font-size: 0.82rem; }
   .info-cta .ic-arrow { font-size: 0.92rem; }
   @media (max-width: 560px){ .info-chip, .info-cta { flex-basis: 100%; } }
-  .cal-wish-banner { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 12px; background: linear-gradient(135deg, rgba(255,194,60,0.1), rgba(255,122,60,0.07));
-    border: 1px solid rgba(255,158,34,0.22); border-radius: 14px; padding: 10px 14px; }
-  .cwb-label { font-weight: 700; font-size: 0.82rem; color: var(--sun-deep); white-space: nowrap; }
-  .cwb-chips { display: flex; gap: 6px; flex-wrap: wrap; flex: 1; }
-  .cw-chip { font-size: 0.76rem; background: var(--card); border: 1px solid var(--border); border-radius: 20px; padding: 3px 10px; font-weight: 600; }
-  .cw-chip.mine { background: rgba(46,155,201,0.14); color: var(--sky-deep); border-color: rgba(46,155,201,0.25); }
-  .cwb-hint { font-size: 0.72rem; color: var(--text2); font-style: italic; white-space: nowrap; }
+  .cal-wish-banner { margin-top: 12px; background: linear-gradient(135deg, rgba(255,194,60,0.1), rgba(255,122,60,0.07));
+    border: 1px solid rgba(255,158,34,0.22); border-radius: 14px; padding: 11px 14px; }
+  .cwb-top { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; margin-bottom: 8px; }
+  .cwb-label { font-weight: 700; font-size: 0.9rem; color: var(--sun-deep); }
+  .cwb-hint { font-size: 0.72rem; color: var(--text2); font-style: italic; }
+  .cwl-list { display: flex; flex-direction: column; gap: 5px; }
+  .cwl-row { display: flex; align-items: center; gap: 9px; background: var(--card); border: 1px solid var(--border);
+    border-radius: 10px; padding: 6px 10px; font-size: 0.85rem; }
+  .cwl-row.mine { background: rgba(46,155,201,0.1); border-color: rgba(46,155,201,0.25); }
+  .cwl-rank { flex-shrink: 0; width: 22px; height: 22px; border-radius: 50%; background: linear-gradient(135deg, var(--sun) 0%, var(--amber) 100%);
+    color: #fff; font-weight: 800; font-size: 0.76rem; display: flex; align-items: center; justify-content: center; }
+  .cwl-row.mine .cwl-rank { background: linear-gradient(135deg, var(--sky-light) 0%, var(--sky-deep) 100%); }
+  .cwl-name { font-weight: 700; flex-shrink: 0; }
+  .cwl-note { color: var(--text2); flex: 1; min-width: 0; }
 
   /* ─── Waschmaschine-Illustration (animiert) ─── */
   .washer-hero { display: flex; align-items: center; gap: 16px; background: linear-gradient(135deg, #FFF6E4 0%, #FFEAD2 100%);
@@ -952,21 +959,31 @@ async function loadKalender(){
   renderCalWishes(date);
 }
 
-// Wünsche der angezeigten Woche als Vorschau im Kalender (nicht verbindlich)
+// Wünsche der angezeigten Woche als Vorschau im Kalender (nicht verbindlich).
+// Sortiert nach Eintragszeit: wer zuerst eingetragen hat, steht oben (Nr. 1) —
+// so sind Vorrang & Kollisionen für alle offen ersichtlich.
 async function renderCalWishes(date){
   const el = document.getElementById('cal-wishes');
   el.innerHTML = '';
   const kw = isoWeek(date), year = date.getFullYear();
-  const {data:wishes} = await sb.from('wp_wishes').select('*').eq('year', year).eq('calendar_week', kw);
+  const {data:wishes} = await sb.from('wp_wishes').select('*').eq('year', year).eq('calendar_week', kw)
+    .order('created_at',{ascending:true});
   if(!wishes || !wishes.length) return;
-  const chips = wishes.map(w=>{
+  const rows = wishes.map((w,i)=>{
     const mine = w.user_name.toLowerCase()===(ME||'').toLowerCase();
-    return `<span class="cw-chip ${mine?'mine':''}">${w.is_locked?'🔒':'🧺'} ${mine?'Du':escHtml(w.user_name)}${w.note?' · '+escHtml(w.note):''}</span>`;
+    return `<div class="cwl-row ${mine?'mine':''}">
+      <span class="cwl-rank">${i+1}</span>
+      <span class="cwl-name">${w.is_locked?'🔒 ':''}${mine?'Du':escHtml(w.user_name)}</span>
+      <span class="cwl-note">${w.note?escHtml(w.note):'—'}</span>
+    </div>`;
   }).join('');
+  const many = wishes.length > 1;
   el.innerHTML = `<div class="cal-wish-banner">
-    <span class="cwb-label">💭 Wünsche für KW ${kw}</span>
-    <span class="cwb-chips">${chips}</span>
-    <span class="cwb-hint">unverbindliche Vorschau</span>
+    <div class="cwb-top">
+      <span class="cwb-label">💭 Waschwünsche für KW ${kw}</span>
+      <span class="cwb-hint">${many?'Reihenfolge = wer zuerst kam · ':''}unverbindliche Vorschau</span>
+    </div>
+    <div class="cwl-list">${rows}</div>
   </div>`;
 }
 
@@ -1024,7 +1041,7 @@ async function loadWochenvorschau(){
   const el = document.getElementById('wv-weeks-grid');
   el.innerHTML = '<div style="padding:1rem;color:var(--text2)">Lade…</div>';
 
-  const {data:wishes, error} = await sb.from('wp_wishes').select('*').eq('year', year);
+  const {data:wishes, error} = await sb.from('wp_wishes').select('*').eq('year', year).order('created_at',{ascending:true});
   if(error){ el.innerHTML = `<div style="color:var(--full)">Wochenvorschau nicht verfügbar — bitte Migration ausführen.<br><small>${escHtml(error.message)}</small></div>`; return; }
   const wishByKW = {};
   (wishes||[]).forEach(w=>{ (wishByKW[w.calendar_week] = wishByKW[w.calendar_week] || []).push(w); });
