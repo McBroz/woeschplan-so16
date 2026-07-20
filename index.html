@@ -336,6 +336,7 @@
   .wv-admin button:hover { border-color: var(--sun-deep); }
   .wv-admin button.fix { background: linear-gradient(135deg, var(--sun) 0%, var(--amber) 100%); color: #fff; border-color: transparent; }
   .wv-locked-note { font-size: 0.76rem; color: var(--sun-deep); font-weight: 600; display: flex; align-items: center; gap: 5px; margin-top: 0.3rem; }
+  .wv-mycount { font-size: 0.7rem; color: var(--sky-deep); margin-top: 0.35rem; }
 
   /* ─── Admin: Wünsche verwalten ─── */
   .aw-row { display: flex; align-items: center; gap: 12px; padding: 0.8rem 0.9rem; border: 1px solid var(--border); border-radius: 13px;
@@ -1116,15 +1117,15 @@ async function loadWochenvorschau(){
         <span class="ww-note">${noteTxt}</span>${del}</div>`;
     }).join('');
 
+    const myCount = kwWishes.filter(w=>w.user_name.toLowerCase()===(ME||'').toLowerCase()).length;
     let actionHtml = '';
     if(isLockedForMe && !IS_ADMIN){
       actionHtml = `<div class="wv-locked-note">🔒 vom Admin fixiert</div>`;
-    } else if(!myWish && !isPast){
+    } else if(!isPast){
       actionHtml = `<div class="wv-add">
-        <input type="text" id="wish-note-${kw}" placeholder="z.B. Freitag Abend" maxlength="30" onkeydown="if(event.key==='Enter')addWish(${kw},${year})">
-        <button title="Wunsch eintragen" onclick="addWish(${kw},${year})">＋</button></div>`;
-    } else if(myWish && !IS_ADMIN){
-      actionHtml = `<div class="wv-locked-note" style="color:var(--sky-deep)">✓ dein Wunsch ist eingetragen</div>`;
+        <input type="text" id="wish-note-${kw}" placeholder="${myCount>0?'weiterer Wunsch…':'z.B. Freitag Abend'}" maxlength="30" onkeydown="if(event.key==='Enter')addWish(${kw},${year})">
+        <button title="Wunsch eintragen" onclick="addWish(${kw},${year})">＋</button></div>`
+        + (myCount>0 ? `<div class="wv-mycount">✓ ${myCount} eigene${myCount===1?'r':''} Wunsch${myCount!==1?'e':''} — du kannst mehrere eintragen</div>` : '');
     }
 
     const adminHint = (IS_ADMIN && kwWishes.length>0)
