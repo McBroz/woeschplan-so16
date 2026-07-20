@@ -229,8 +229,9 @@
   .m-locked { font-size: 0.75rem; opacity: 0.6; flex-shrink: 0; }
   .slot-past { opacity: 0.42; filter: grayscale(0.6); }
   .slot-toofar { opacity: 0.6; }
-  .slot-wish { margin-top: 5px; font-size: 0.62rem; background: rgba(255,158,34,0.14); color: var(--sun-deep);
-    border-radius: 8px; padding: 3px 7px; font-weight: 700; display: flex; align-items: center; gap: 4px; }
+  .slot-wish { margin-top: 5px; font-size: 0.62rem; background: rgba(255,158,34,0.16); color: var(--sun-deep);
+    border-radius: 8px; padding: 4px 7px; font-weight: 700; display: flex; align-items: center; gap: 4px; line-height: 1.3; }
+  .slot-wish.mine { background: rgba(46,155,201,0.16); color: var(--sky-deep); }
   .badge-window { display: inline-flex; align-items: center; gap: 6px; font-size: 0.78rem; background: linear-gradient(135deg, rgba(62,155,196,0.1), rgba(159,220,238,0.16));
     color: var(--sky-deep); border: 1px solid rgba(62,155,196,0.2); border-radius: 12px; padding: 9px 15px; font-weight: 600; line-height: 1.5; }
   /* ─── Info-Strip (Kalender-Hinweise) ─── */
@@ -866,6 +867,31 @@ function mondayOfISOWeek(week, year){
   return monday;
 }
 
+// ─── Wunsch-Notiz deuten: Wochentag (0=Mo..6=So) und Slot-Startstunde raten ───
+function parseWishWeekday(note){
+  const s = (note||'').toLowerCase();
+  const days = ['montag','dienstag','mittwoch','donnerstag','freitag','samstag','sonntag'];
+  for(let i=0;i<days.length;i++){ if(s.includes(days[i])) return i; }
+  if(s.includes('sonnabend')) return 5;
+  return null;
+}
+function parseWishHour(note){
+  const s = (note||'').toLowerCase();
+  let h = null;
+  const m = s.match(/(\d{1,2})(?:[:.]\d{2})?\s*uhr|(\d{1,2})[:.]\d{2}|\b(?:ab|um|gegen)\s*(\d{1,2})/);
+  if(m) h = parseInt(m[1]||m[2]||m[3]);
+  if(h===null){
+    if(/morgen|früh|vormittag/.test(s)) h=9;
+    else if(/mittag/.test(s)) h=13;
+    else if(/nachmittag/.test(s)) h=15;
+    else if(/abend|spät/.test(s)) h=19;
+  }
+  if(h===null) return null;
+  if(h<SLOT_START_HOUR) h=SLOT_START_HOUR;
+  if(h>=SLOT_END_HOUR) h=SLOT_END_HOUR-1;
+  return (h%2===1) ? h : h-1; // auf ungerade Slot-Startstunde (07,09,11…) einrasten
+}
+
 // ─── Kalender ───
 function dayLabel(offset){
   const d = new Date(); d.setDate(d.getDate()+offset);
@@ -906,6 +932,21 @@ async function loadKalender(){
     .gte('start_ts', dayStart.toISOString()).lt('start_ts', dayEnd.toISOString())
     .order('start_ts');
   if(error){ grid.innerHTML = '<div style="color:var(--full)">Fehler beim Laden</div>'; return; }
+
+  // Wünsche der Woche laden und (per geparster Notiz) den passenden Slots dieses Tages zuordnen
+  const viewWeekday = (date.getDay()+6)%7;
+  const {data:weekWishes} = await sb.from('wp_wishes').select('*')
+    .eq('year', date.getFullYear()).eq('calendar_week', isoWeek(date)).order('created_at',{ascending:true});
+  const slotWish = {};
+  (weekWishes||[]).forEach((w,idx)=>{
+    if(parseWishWeekday(w.note) !== viewWeekday) return;
+    const sh = parseWishHour(w.note);
+    if(sh===null) return;
+    (slotWish[sh] = slotWish[sh] || []).push({
+      name: w.user_name, note: w.note, rank: idx+1,
+      mine: w.user_name.toLowerCase()===(ME||'').toLowerCase()
+    });
+  });
 
   const now = new Date();
   const dayTooFar = calDayOffset > BOOK_WINDOW_DAYS;
@@ -951,7 +992,13 @@ async function loadKalender(){
           <span class="m-info"><b>${machineLabel}</b><span class="m-by">${isPast?'vorbei':'frei'}</span></span>
         </div>`;
     }
-    card.innerHTML = `<div class="slot-time"><span class="clock">🕐</span> ${timeStr}</div><div class="slot-machines">${rowHtml}</div>`;
+    let wishHtml = '';
+    if(slotWish[h]){
+      wishHtml = slotWish[h].map(x=>
+        `<div class="slot-wish ${x.mine?'mine':''}" title="${escHtml(x.name+': '+x.note)}">💭 Wunsch #${x.rank}: ${x.mine?'Du':escHtml(x.name)}</div>`
+      ).join('');
+    }
+    card.innerHTML = `<div class="slot-time"><span class="clock">🕐</span> ${timeStr}</div><div class="slot-machines">${rowHtml}</div>${wishHtml}`;
     grid.appendChild(card);
   }
 
