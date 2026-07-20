@@ -911,6 +911,20 @@ function parseWishHour(note){
   if(h>=SLOT_END_HOUR) h=SLOT_END_HOUR-1;
   return (h%2===1) ? h : h-1; // auf ungerade Slot-Startstunde (07,09,11…) einrasten
 }
+// Zeitraum aus Notiz raten → {start, end} in Stunden (oder Einzelzeit als 2h-Fenster)
+function parseWishTimes(note){
+  const s = (note||'').toLowerCase();
+  const m = s.match(/(\d{1,2})(?:[:.]\d{2})?\s*(?:uhr|h)?\s*(?:bis|--|–|—|-|und)\s*(\d{1,2})(?:[:.]\d{2})?\s*(?:uhr|h)?/);
+  if(m){
+    let a = parseInt(m[1]), b = parseInt(m[2]);
+    if(!isNaN(a) && !isNaN(b) && b > a){
+      return { start: Math.max(SLOT_START_HOUR, a), end: Math.min(SLOT_END_HOUR, b), range: true };
+    }
+  }
+  const one = parseWishHour(note);
+  if(one !== null) return { start: one, end: one + SLOT_LEN_H, range: false };
+  return null;
+}
 
 // ─── Kalender ───
 function dayLabel(offset){
@@ -960,12 +974,16 @@ async function loadKalender(){
   const slotWish = {};
   (weekWishes||[]).forEach((w,idx)=>{
     if(parseWishWeekday(w.note) !== viewWeekday) return;
-    const sh = parseWishHour(w.note);
-    if(sh===null) return;
-    (slotWish[sh] = slotWish[sh] || []).push({
-      name: w.user_name, note: w.note, rank: idx+1,
-      mine: w.user_name.toLowerCase()===(ME||'').toLowerCase()
-    });
+    const t = parseWishTimes(w.note);
+    if(!t) return;
+    for(const sh of slotsForDay()){
+      if(sh < t.end && (sh + SLOT_LEN_H) > t.start){
+        (slotWish[sh] = slotWish[sh] || []).push({
+          name: w.user_name, note: w.note, rank: idx+1, range: t.range,
+          mine: w.user_name.toLowerCase()===(ME||'').toLowerCase()
+        });
+      }
+    }
   });
 
   const now = new Date();
@@ -1123,7 +1141,7 @@ async function loadWochenvorschau(){
       actionHtml = `<div class="wv-locked-note">🔒 vom Admin fixiert</div>`;
     } else if(!isPast){
       actionHtml = `<div class="wv-add">
-        <input type="text" id="wish-note-${kw}" placeholder="${myCount>0?'weiterer Wunsch…':'z.B. Freitag Abend'}" maxlength="30" onkeydown="if(event.key==='Enter')addWish(${kw},${year})">
+        <input type="text" id="wish-note-${kw}" placeholder="${myCount>0?'weiterer Wunsch…':'z.B. Mi 12–17 Uhr'}" maxlength="40" onkeydown="if(event.key==='Enter')addWish(${kw},${year})">
         <button title="Wunsch eintragen" onclick="addWish(${kw},${year})">＋</button></div>`
         + (myCount>0 ? `<div class="wv-mycount">✓ ${myCount} eigene${myCount===1?'r':''} Wunsch${myCount!==1?'e':''} — du kannst mehrere eintragen</div>` : '');
     }
