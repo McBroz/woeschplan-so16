@@ -313,9 +313,39 @@ gerade ist** (10 % / 50 % / ¾) — grafisch, mit Balken oder virtuellem Raum.
   kein horizontales Scrollen bei 375 px und 360×600 ✓, Dialog auf kleinen Displays scrollbar
   und Submit erreichbar ✓, ohne Migration degradiert die App sauber statt zu crashen ✓,
   keine Konsolenfehler ✓.
-- **Offen:** die Migration konnte diesmal **nicht** selbst ausgeführt werden — die
-  Chrome-Extension war nicht verbunden. `supabase-migration-raumstatus.sql` muss noch in den
-  Supabase SQL-Editor. Bis dahin zeigt die App nur „Füllstands-Anzeige noch nicht aktiv".
+- **Offen:** die Migration konnte diesmal **nicht** ausgeführt werden — erst war die
+  Chrome-Extension nicht verbunden, danach war die **Supabase-Session abgelaufen**
+  („Session expired", Login macht der Nutzer selbst). Das SQL liegt fertig im SQL-Editor
+  (Query `d1f4525b-…`), es fehlt nur noch „Run". Bis dahin zeigt die App
+  „Füllstands-Anzeige noch nicht aktiv".
+
+## 2026-07-24 (später) — Grafisches Generalupdate über alle Seiten
+
+Rückmeldung: „und das grafische generalupdate? wo ist das?" — die Politur davor war nur
+Textkosmetik. Also ein durchgehender Design-Pass über **jede** Seite:
+
+- **Einheitliche Seiten-Köpfe (`.page-hero`)** für Kalender, Wochenvorschau, Hausordnung und
+  Admin — vorher hatten die nur eine nackte Überschrift. Farbverlauf pro Bereich
+  (Kalender orange, Wochenvorschau blau, Hausordnung tafelgrün, Admin warmbraun), dazu
+  pulsierender Sonnen-Halo oben rechts, eine **Hügel-Silhouette als CSS-Data-URI** am
+  unteren Rand, Icon-Badge im Glas-Look, Titel + Erklärtext + Aktualisieren-Button.
+  Die separaten `pin-status-msg`-Erklärkästen und `row-between`-Titel entfielen dadurch.
+- Der animierte **Waschmaschinen-SVG** (drehende Trommel + aufsteigende Seifenblasen) sitzt
+  jetzt im Kalender-Kopf statt in einem eigenen Kasten darüber — eine Sache weniger auf der Seite.
+- **Login-Seite** bekommt die **Sonnenberg-Szene** als Kopfbild. Kein zweites SVG im Code:
+  die Szene der Übersicht wird geklont, die Gradient-IDs werden umbenannt
+  (`sky` → `skyL` …, sonst kollidieren die beiden SVGs) und `slice` → `meet` gesetzt,
+  damit nichts angeschnitten wird.
+- **Tageszeit-Farben im Kalender:** jede Slot-Karte trägt oben einen Farbstreifen und ein
+  Symbol, das mit der Sonne über den Tag wandert — 🌅 Morgen (07/09), ☀️ Mittag (11/13),
+  🌇 Nachmittag (15/17), 🌙 Abend (19/21), dazu ein zarter Verlauf im Kartenhintergrund.
+- **Wochenvorschau:** Monatsüberschriften mit Jahreszeiten-Symbol (❄️🌱🌦️🌸☀️🌻🍂🍁🌫️⛄).
+- **Footer** mit Hügel-Silhouette und Sonne statt einer nackten Textzeile.
+- **Lesbarkeit:** Hero-Overlay der Übersicht abgedunkelt (0.16→0.42 / 0.5→0.72), weil der
+  Gruss über dem Häuschen schwer lesbar war; „WM + TU" bricht nicht mehr um
+  (`white-space: nowrap`); Slot-Raster von 150 auf 166 px, damit „frei — tippen" ganz passt.
+- **Getestet** bei 1200/1100 px, 375 px und 360×600: kein horizontales Scrollen, Seiten-Köpfe
+  stapeln auf dem Handy sauber (Icon oben bündig, Button volle Breite), keine Konsolenfehler.
 
 ## Offene Schritte (Nutzer) — Stand 2026-07-19
 

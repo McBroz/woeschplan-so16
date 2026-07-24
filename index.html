@@ -121,12 +121,47 @@
   .refresh-btn:hover { border-color: var(--sun-deep); color: var(--sun-deep); }
   .row-between { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-bottom: 1.2rem; flex-wrap: wrap; }
 
+  /* ═══════════ SEITEN-KÖPFE (alle Unterseiten) ═══════════ */
+  .page-hero { position: relative; overflow: hidden; border-radius: 24px; padding: 1.5rem 1.7rem 1.8rem;
+    margin-bottom: 1.5rem; display: flex; align-items: center; gap: 1.1rem; color: #fff;
+    box-shadow: 0 14px 36px rgba(180,120,40,0.22); }
+  .page-hero::before { content: ''; position: absolute; top: -80px; right: -50px; width: 230px; height: 230px; border-radius: 50%;
+    background: radial-gradient(circle, rgba(255,255,255,0.40) 0%, rgba(255,255,255,0) 68%); pointer-events: none;
+    animation: sunPulse 8s ease-in-out infinite; }
+  .page-hero::after { content: ''; position: absolute; left: 0; right: 0; bottom: -1px; height: 44px; pointer-events: none;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 120' preserveAspectRatio='none'%3E%3Cpath d='M0,74 C180,26 380,96 600,66 C820,36 1010,92 1200,54 L1200,120 L0,120 Z' fill='%23fff' fill-opacity='0.15'/%3E%3Cpath d='M0,96 C240,66 440,112 700,92 C900,76 1060,106 1200,86 L1200,120 L0,120 Z' fill='%23fff' fill-opacity='0.22'/%3E%3C/svg%3E") no-repeat bottom / 100% 100%; }
+  .ph-ico { position: relative; z-index: 1; width: 64px; height: 64px; flex-shrink: 0; border-radius: 20px;
+    background: rgba(255,255,255,0.24); border: 1px solid rgba(255,255,255,0.38);
+    display: flex; align-items: center; justify-content: center; font-size: 1.85rem;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.13); }
+  .ph-ico svg { width: 46px; height: 46px; }
+  .ph-text { position: relative; z-index: 1; flex: 1; min-width: 0; }
+  .ph-title { font-family: 'Baloo 2', sans-serif; font-weight: 800; font-size: 1.7rem; line-height: 1.1;
+    text-shadow: 0 2px 10px rgba(0,0,0,0.17); }
+  .ph-sub { font-size: 0.87rem; opacity: 0.95; line-height: 1.5; margin-top: 4px; max-width: 66ch; }
+  .ph-btn { position: relative; z-index: 1; flex-shrink: 0; background: rgba(255,255,255,0.22); border: 1px solid rgba(255,255,255,0.42);
+    color: #fff; border-radius: 12px; padding: 9px 15px; cursor: pointer; font-family: inherit; font-weight: 700; font-size: 0.84rem;
+    transition: all 0.18s; white-space: nowrap; }
+  .ph-btn:hover { background: rgba(255,255,255,0.36); transform: translateY(-1px); }
+  .ph-kalender { background: linear-gradient(120deg, #FFB347 0%, #FF7A3C 100%); }
+  .ph-woche    { background: linear-gradient(120deg, #63C6E0 0%, #3E9BC4 100%); }
+  .ph-board    { background: linear-gradient(120deg, #57946C 0%, #2F5B43 100%); }
+  .ph-admin    { background: linear-gradient(120deg, #C98A3E 0%, #8A5A2B 100%); }
+  @media (max-width: 620px){
+    .page-hero { padding: 1.1rem 1.1rem 1.5rem; gap: 0.8rem; flex-wrap: wrap; align-items: flex-start; }
+    .ph-ico { width: 50px; height: 50px; font-size: 1.4rem; border-radius: 16px; }
+    .ph-ico svg { width: 34px; height: 34px; }
+    .ph-title { font-size: 1.32rem; }
+    .ph-sub { font-size: 0.8rem; }
+    .ph-btn { order: 3; width: 100%; }
+  }
+
   /* ═══════════ DASHBOARD / SONNENBERG HERO ═══════════ */
   .hero { position: relative; border-radius: 26px; overflow: hidden; margin-bottom: 1.5rem;
     box-shadow: 0 18px 44px rgba(180,120,40,0.2); border: 1px solid rgba(255,255,255,0.5); }
   .hero-scene { display: block; width: 100%; height: auto; }
-  .hero-overlay { position: absolute; left: 0; right: 0; bottom: 0; padding: 1.5rem 1.7rem 1.4rem;
-    background: linear-gradient(0deg, rgba(58,44,28,0.5) 0%, rgba(58,44,28,0.16) 55%, rgba(58,44,28,0) 100%); }
+  .hero-overlay { position: absolute; left: 0; right: 0; bottom: 0; padding: 1.6rem 1.7rem 1.4rem;
+    background: linear-gradient(0deg, rgba(58,44,28,0.72) 0%, rgba(58,44,28,0.42) 45%, rgba(58,44,28,0) 100%); }
   .hero-greet { color: #fff; font-family: 'Baloo 2', sans-serif; font-weight: 800; font-size: 1.85rem; line-height: 1.1;
     text-shadow: 0 2px 12px rgba(0,0,0,0.28); }
   .hero-sub { color: rgba(255,255,255,0.94); font-size: 0.94rem; margin-top: 3px; text-shadow: 0 1px 8px rgba(0,0,0,0.3); }
@@ -201,10 +236,20 @@
   .occupancy-frac { font-family: 'Baloo 2', sans-serif; font-size: 1.6rem; font-weight: 800; }
   .occupancy-label { font-size: 0.82rem; color: var(--text2); }
 
-  .slot-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 9px; }
-  .slot-card { background: var(--card); border: 1px solid var(--border); border-radius: 15px; padding: 0.65rem 0.75rem;
-    box-shadow: var(--shadow-sm); transition: transform 0.18s, box-shadow 0.18s;
-    opacity: 0; transform: translateY(12px); animation: cardIn 0.4s ease forwards; }
+  .slot-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(166px, 1fr)); gap: 10px; }
+  .slot-card { position: relative; background: var(--card); border: 1px solid var(--border); border-radius: 15px;
+    padding: 0.75rem 0.75rem 0.65rem; box-shadow: var(--shadow-sm); transition: transform 0.18s, box-shadow 0.18s;
+    opacity: 0; transform: translateY(12px); animation: cardIn 0.4s ease forwards; overflow: hidden; }
+  /* Tageszeit-Streifen: die Sonne wandert über den Tag */
+  .slot-card::before { content: ''; position: absolute; left: 0; right: 0; top: 0; height: 4px; }
+  .tod-morning::before   { background: linear-gradient(90deg, #FFEFC2 0%, #FFC23C 100%); }
+  .tod-noon::before      { background: linear-gradient(90deg, #FFD34E 0%, #FF9E22 100%); }
+  .tod-afternoon::before { background: linear-gradient(90deg, #FFA85C 0%, #FF7A3C 100%); }
+  .tod-evening::before   { background: linear-gradient(90deg, #9E86C9 0%, #5E4B8A 100%); }
+  .tod-morning   { background: linear-gradient(180deg, #FFFDF6 0%, var(--card) 42%); }
+  .tod-noon      { background: linear-gradient(180deg, #FFFBEF 0%, var(--card) 42%); }
+  .tod-afternoon { background: linear-gradient(180deg, #FFF7EE 0%, var(--card) 42%); }
+  .tod-evening   { background: linear-gradient(180deg, #F8F5FC 0%, var(--card) 42%); }
   @keyframes cardIn { to { opacity: 1; transform: translateY(0); } }
   .slot-card:hover { transform: translateY(-3px); box-shadow: var(--shadow); }
   .slot-time { font-family: 'Baloo 2', sans-serif; font-weight: 800; font-size: 0.86rem; margin-bottom: 7px; display: flex; align-items: center; gap: 4px; }
@@ -213,7 +258,7 @@
   .m-row { display: flex; align-items: center; gap: 6px; padding: 7px 8px; border-radius: 11px; transition: all 0.15s; }
   .m-ico { font-size: 1rem; flex-shrink: 0; letter-spacing: -2px; }
   .m-info { display: flex; flex-direction: column; line-height: 1.2; flex: 1; min-width: 0; }
-  .m-info b { font-size: 0.74rem; }
+  .m-info b { font-size: 0.74rem; white-space: nowrap; }
   .m-by { font-size: 0.64rem; opacity: 0.85; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .m-free { background: rgba(67,178,94,0.12); color: var(--ok); cursor: pointer; border: 1px dashed rgba(67,178,94,0.5); }
   .m-free:hover { background: rgba(67,178,94,0.22); transform: scale(1.02); }
@@ -463,7 +508,17 @@
   .spinner { width: 44px; height: 44px; border: 4px solid var(--card2); border-top-color: var(--sun-deep); border-radius: 50%; animation: spin 0.8s linear infinite; }
   @keyframes spin { to { transform: rotate(360deg); } }
 
-  footer { text-align: center; color: var(--text2); font-size: 0.78rem; padding: 2rem 1rem; }
+  /* ─── Login-Kopf mit Sonnenberg-Szene ─── */
+  .login-card { padding-top: 0; overflow: hidden; }
+  .login-hero { margin: 0 -1.8rem 1.4rem; position: relative; line-height: 0; }
+  .login-hero .hero-scene { width: 100%; height: auto; display: block; }
+
+  /* ─── Footer mit Hügel-Silhouette ─── */
+  footer { position: relative; text-align: center; color: var(--text2); font-size: 0.78rem;
+    padding: 4rem 1rem 2rem; margin-top: 2.5rem; }
+  footer::before { content: ''; position: absolute; left: 0; right: 0; top: 0; height: 66px; pointer-events: none;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 140' preserveAspectRatio='none'%3E%3Ccircle cx='960' cy='52' r='30' fill='%23FFC23C' fill-opacity='0.55'/%3E%3Cpath d='M0,92 C170,44 360,110 580,84 C800,58 1000,106 1200,72 L1200,140 L0,140 Z' fill='%23FFB86B' fill-opacity='0.34'/%3E%3Cpath d='M0,112 C230,84 430,126 690,108 C890,94 1060,120 1200,102 L1200,140 L0,140 Z' fill='%23FF9E22' fill-opacity='0.28'/%3E%3C/svg%3E") no-repeat bottom / 100% 100%; }
+  footer span { position: relative; }
 </style>
 </head>
 <body>
@@ -485,7 +540,8 @@
 
 <!-- ═══ LOGIN ═══ -->
 <div class="page active" id="page-login">
-  <div class="card">
+  <div class="card login-card">
+    <div class="login-hero" id="hero-login"></div>
     <div class="page-title">☀️ Wösch<span>plan</span> SO 16</div>
     <div class="page-sub">Waschraum-Buchung für unser Haus am Sonnenberg &mdash; fair geteilt unter allen <b>6 Parteien</b>. ☀️</div>
 
@@ -624,29 +680,27 @@
 
 <!-- ═══ KALENDER ═══ -->
 <div class="page" id="page-kalender">
-  <div class="row-between">
-    <div class="section-title">📅 Waschraum-Belegung</div>
-    <button class="refresh-btn" onclick="loadKalender()">↻ Aktualisieren</button>
-  </div>
-
-  <div class="washer-hero">
-    <svg class="washer-svg" viewBox="0 0 76 76">
-      <rect x="8" y="6" width="60" height="64" rx="12" fill="#fff" stroke="#FFB627" stroke-width="2.5"/>
-      <rect x="8" y="6" width="60" height="15" rx="8" fill="#FFE7BE"/>
-      <circle cx="20" cy="13.5" r="2.4" fill="#FF8C42"/><circle cx="29" cy="13.5" r="2.4" fill="#4CAF6D"/>
-      <circle cx="38" cy="42" r="22" fill="#EAF6FC" stroke="#6EC6E8" stroke-width="2"/>
-      <g class="drum">
-        <circle cx="38" cy="42" r="15" fill="none" stroke="#2E86AB" stroke-width="2" stroke-dasharray="5 6"/>
-        <circle cx="38" cy="30" r="3" fill="#FFB627"/><circle cx="49" cy="46" r="3" fill="#FF8C42"/><circle cx="29" cy="50" r="3" fill="#6EC6E8"/>
-      </g>
-    </svg>
-    <div class="wh-text">
-      <div class="wh-title">Bereit zum Waschen? ☀️</div>
-      <div class="wh-sub">Tippe unten auf einen freien Platz — buchbar für <b>heute &amp; die nächsten 3 Tage</b>. WM &amp; TU gehören immer zusammen zum Zeitfenster. Nach dem Buchen kurz melden, wie voll der Raum gerade ist. 🙏</div>
+  <div class="page-hero ph-kalender">
+    <div class="ph-ico">
+      <svg class="washer-svg" viewBox="0 0 76 76">
+        <rect x="8" y="6" width="60" height="64" rx="12" fill="#fff" stroke="#FFB627" stroke-width="2.5"/>
+        <rect x="8" y="6" width="60" height="15" rx="8" fill="#FFE7BE"/>
+        <circle cx="20" cy="13.5" r="2.4" fill="#FF8C42"/><circle cx="29" cy="13.5" r="2.4" fill="#4CAF6D"/>
+        <circle cx="38" cy="42" r="22" fill="#EAF6FC" stroke="#6EC6E8" stroke-width="2"/>
+        <g class="drum">
+          <circle cx="38" cy="42" r="15" fill="none" stroke="#2E86AB" stroke-width="2" stroke-dasharray="5 6"/>
+          <circle cx="38" cy="30" r="3" fill="#FFB627"/><circle cx="49" cy="46" r="3" fill="#FF8C42"/><circle cx="29" cy="50" r="3" fill="#6EC6E8"/>
+        </g>
+      </svg>
     </div>
-    <div class="bubble" style="width:14px;height:14px;left:44px;bottom:8px;animation-duration:4s"></div>
-    <div class="bubble" style="width:9px;height:9px;left:60px;bottom:4px;animation-duration:5.5s;animation-delay:1s"></div>
-    <div class="bubble" style="width:11px;height:11px;left:26px;bottom:2px;animation-duration:4.8s;animation-delay:2s"></div>
+    <div class="ph-text">
+      <div class="ph-title">Bereit zum Waschen? ☀️</div>
+      <div class="ph-sub">Tippe unten auf einen freien Platz — buchbar für <b>heute &amp; die nächsten 3 Tage</b>. WM &amp; TU gehören immer zusammen zum Zeitfenster.</div>
+    </div>
+    <button class="ph-btn" onclick="loadKalender()">↻ Aktualisieren</button>
+    <div class="bubble" style="width:14px;height:14px;left:52px;bottom:10px;animation-duration:4s"></div>
+    <div class="bubble" style="width:9px;height:9px;left:70px;bottom:6px;animation-duration:5.5s;animation-delay:1s"></div>
+    <div class="bubble" style="width:11px;height:11px;left:32px;bottom:4px;animation-duration:4.8s;animation-delay:2s"></div>
   </div>
 
   <div class="day-tabs" id="day-tabs"></div>
@@ -678,12 +732,13 @@
 
 <!-- ═══ WOCHENVORSCHAU ═══ -->
 <div class="page" id="page-wochenplan">
-  <div class="row-between">
-    <div class="section-title">🗓️ Wochenvorschau</div>
-    <button class="refresh-btn" onclick="loadWochenvorschau()">↻ Aktualisieren</button>
-  </div>
-  <div class="pin-status-msg">
-    Plane fürs ganze Jahr voraus: trag pro Kalenderwoche deinen Waschwunsch ein. Der Admin sieht alle Wünsche und kann sie mit einem Klick zu echten Buchungen machen (📌) oder eine Woche sperren (🔒). Deine Wünsche erscheinen auch als Vorschau im Kalender.
+  <div class="page-hero ph-woche">
+    <div class="ph-ico">🗓️</div>
+    <div class="ph-text">
+      <div class="ph-title">Wochenvorschau</div>
+      <div class="ph-sub">Plane fürs ganze Jahr voraus — trag pro Kalenderwoche deine Waschwünsche ein (auch mehrere, z.&nbsp;B. „Mi 12–17 Uhr“). Sie erscheinen als Vorschau im Kalender. Fix zuteilen (📌) und sperren (🔒) kann nur der Admin.</div>
+    </div>
+    <button class="ph-btn" onclick="loadWochenvorschau()">↻ Aktualisieren</button>
   </div>
 
   <div class="wv-toolbar">
@@ -703,8 +758,13 @@
 
 <!-- ═══ HAUSORDNUNG (BLACKBOARD) ═══ -->
 <div class="page" id="page-chat">
-  <div class="section-title">📋 Hausordnung</div>
-  <div class="pin-status-msg">🖊️ Vom Admin gepflegte Infotafel für Regeln &amp; Ankündigungen im Haus.</div>
+  <div class="page-hero ph-board">
+    <div class="ph-ico">📋</div>
+    <div class="ph-text">
+      <div class="ph-title">Hausordnung</div>
+      <div class="ph-sub">Die schwarze Tafel im Treppenhaus — nur digital. Regeln &amp; Ankündigungen schlägt der Admin an, mitlesen können alle.</div>
+    </div>
+  </div>
   <div class="chat-box blackboard">
     <div id="chat-msgs"></div>
     <div class="chat-input-row" id="chat-input-row">
@@ -717,9 +777,13 @@
 
 <!-- ═══ ADMIN ═══ -->
 <div class="page" id="page-admin">
-  <div class="row-between">
-    <div class="section-title">⚙️ Admin-Bereich</div>
-    <button class="refresh-btn" onclick="loadAdmin()">↻ Aktualisieren</button>
+  <div class="page-hero ph-admin">
+    <div class="ph-ico">⚙️</div>
+    <div class="ph-text">
+      <div class="ph-title">Admin-Bereich</div>
+      <div class="ph-sub">Statistik, Wochenwünsche zuteilen oder sperren, Nutzer &amp; Codes, alle Buchungen. Nur für Admins sichtbar.</div>
+    </div>
+    <button class="ph-btn" onclick="loadAdmin()">↻ Aktualisieren</button>
   </div>
   <div class="card" style="margin-bottom:1.4rem">
     <h3 style="margin-bottom:0.8rem">📊 Statistik &mdash; wer wäscht wie viel</h3>
@@ -740,7 +804,7 @@
   </div>
 </div>
 
-<footer>🧺 Wöschplan SO 16 &middot; gebaut mit ☀️ &amp; Supabase</footer>
+<footer><span>🧺 Wöschplan SO 16 &middot; für unser Haus am Sonnenberg &middot; gebaut mit ☀️ &amp; Supabase</span></footer>
 
 <script>
 // ─── Supabase ───
@@ -779,6 +843,17 @@ function setQr(){
   document.getElementById('qr-img').src = 'https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=' + encodeURIComponent(url);
 }
 setQr();
+
+// Sonnenberg-Szene der Übersicht auch auf der Login-Seite zeigen
+// (Gradient-IDs umbenennen, sonst kollidieren die beiden SVGs)
+(function cloneHeroToLogin(){
+  const src = document.querySelector('#page-home .hero-scene');
+  const dst = document.getElementById('hero-login');
+  if(!src || !dst) return;
+  dst.innerHTML = src.outerHTML
+    .replace(/(id="|url\(#)(sky|sunG|h1|h2|h3)\b/g, '$1$2L')
+    .replace('preserveAspectRatio="xMidYMid slice"', 'preserveAspectRatio="xMidYMid meet"');
+})();
 
 // ─── Login-Flow ───
 async function checkName(){
@@ -1021,6 +1096,14 @@ function renderDayTabs(){
   }
 }
 
+// Tageszeit eines Slots — färbt die Karte und liefert das passende Sonnen-Symbol
+function todOfHour(h){
+  if(h < 11) return {key:'morning',   ico:'🌅', name:'Morgen'};
+  if(h < 15) return {key:'noon',      ico:'☀️', name:'Mittag'};
+  if(h < 19) return {key:'afternoon', ico:'🌇', name:'Nachmittag'};
+  return {key:'evening', ico:'🌙', name:'Abend'};
+}
+
 function slotsForDay(){
   const slots = [];
   for(let h=SLOT_START_HOUR; h<SLOT_END_HOUR; h+=SLOT_LEN_H){
@@ -1077,8 +1160,9 @@ async function loadKalender(){
     const tooFar = dayTooFar;
     const bookable = !isPast && !tooFar;
 
+    const tod = todOfHour(h);
     const card = document.createElement('div');
-    card.className = 'slot-card' + (isPast ? ' slot-past' : '') + (!isPast && tooFar ? ' slot-toofar' : '');
+    card.className = 'slot-card tod-' + tod.key + (isPast ? ' slot-past' : '') + (!isPast && tooFar ? ' slot-toofar' : '');
     card.style.animationDelay = (animIdx++ * 0.03) + 's';
     const timeStr = `${String(h).padStart(2,'0')}:00–${String(h+SLOT_LEN_H).padStart(2,'0')}:00`;
 
@@ -1096,7 +1180,7 @@ async function loadKalender(){
     } else if(bookable){
       rowHtml = `<div class="m-row m-free" onclick="bookSlot('${start.toISOString()}','${end.toISOString()}')" title="Jetzt buchen">
           <span class="m-ico">${machineIcons}</span>
-          <span class="m-info"><b>${machineLabel}</b><span class="m-by">frei — tippen zum Buchen</span></span>
+          <span class="m-info"><b>${machineLabel}</b><span class="m-by">frei — tippen</span></span>
           <span class="m-plus">＋</span>
         </div>`;
     } else {
@@ -1111,7 +1195,7 @@ async function loadKalender(){
         `<div class="slot-wish ${x.mine?'mine':''}" title="${escHtml(x.name+': '+x.note)}">💭 Wunsch #${x.rank}: ${x.mine?'Du':escHtml(x.name)}</div>`
       ).join('');
     }
-    card.innerHTML = `<div class="slot-time"><span class="clock">🕐</span> ${timeStr}</div><div class="slot-machines">${rowHtml}</div>${wishHtml}`;
+    card.innerHTML = `<div class="slot-time"><span class="clock" title="${tod.name}">${tod.ico}</span> ${timeStr}</div><div class="slot-machines">${rowHtml}</div>${wishHtml}`;
     grid.appendChild(card);
   }
 
@@ -1387,6 +1471,7 @@ async function cancelBooking(id){
 
 // ─── Wochenvorschau ───
 const MONTH_NAMES = ['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'];
+const MONTH_ICONS = ['❄️','❄️','🌱','🌦️','🌸','☀️','☀️','🌻','🍂','🍁','🌫️','⛄'];
 
 function changeYear(delta){
   const inp = document.getElementById('wv-year');
@@ -1497,7 +1582,7 @@ async function loadWochenvorschau(){
     for(let m=0; m<12; m++){
       if(!pastByMonth[m]) continue;
       const cards = pastByMonth[m].map(wk=>buildWeekCard(wk.kw, wk.monday)).join('');
-      pastHtml += `<div class="wv-month"><div class="wv-month-head">${MONTH_NAMES[m]} ${year}</div><div class="wv-grid">${cards}</div></div>`;
+      pastHtml += `<div class="wv-month"><div class="wv-month-head">${MONTH_ICONS[m]} ${MONTH_NAMES[m]} ${year}</div><div class="wv-grid">${cards}</div></div>`;
     }
     const det = document.createElement('details');
     det.className = 'wv-past';
@@ -1513,7 +1598,7 @@ async function loadWochenvorschau(){
     const cards = activeByMonth[m].map(wk=>buildWeekCard(wk.kw, wk.monday)).join('');
     const monthWrap = document.createElement('div');
     monthWrap.className = 'wv-month';
-    monthWrap.innerHTML = `<div class="wv-month-head">${MONTH_NAMES[m]} ${year}</div><div class="wv-grid">${cards}</div>`;
+    monthWrap.innerHTML = `<div class="wv-month-head">${MONTH_ICONS[m]} ${MONTH_NAMES[m]} ${year}</div><div class="wv-grid">${cards}</div>`;
     el.appendChild(monthWrap);
   }
   if(!anyActive){

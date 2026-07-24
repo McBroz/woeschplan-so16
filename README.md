@@ -30,7 +30,9 @@ Reines HTML/JS ohne Build-Pipeline, Backend = Supabase (Postgres + RPC-Funktione
   (siehe unten) und der letzte Hausordnungs-Eintrag.
 - **📅 Kalender:** feste, verbindliche Buchung eines Zeitfensters — aber nur für
   **heute + die folgenden 3 Tage**, damit niemand den Waschraum wochenlang blockiert.
-  Wünsche aus der Wochenvorschau erscheinen hier als unverbindliche Vorschau.
+  Jede Slot-Karte ist nach Tageszeit eingefärbt und trägt das passende Symbol
+  (🌅 Morgen · ☀️ Mittag · 🌇 Nachmittag · 🌙 Abend). Wünsche aus der Wochenvorschau
+  erscheinen hier als unverbindliche Vorschau beim passenden Zeitfenster.
 - **🗓️ Wochenvorschau:** Vorausplanung fürs **ganze Jahr**, nach Monat gruppiert. Jede
   Kalenderwoche ist eine Karte; man trägt pro Woche einen Waschwunsch mit kurzer Notiz
   ein. Die aktuelle Woche ist hervorgehoben, vergangene sind ausgegraut.
