@@ -313,11 +313,15 @@ gerade ist** (10 % / 50 % / ¾) — grafisch, mit Balken oder virtuellem Raum.
   kein horizontales Scrollen bei 375 px und 360×600 ✓, Dialog auf kleinen Displays scrollbar
   und Submit erreichbar ✓, ohne Migration degradiert die App sauber statt zu crashen ✓,
   keine Konsolenfehler ✓.
-- **Offen:** die Migration konnte diesmal **nicht** ausgeführt werden — erst war die
-  Chrome-Extension nicht verbunden, danach war die **Supabase-Session abgelaufen**
-  („Session expired", Login macht der Nutzer selbst). Das SQL liegt fertig im SQL-Editor
-  (Query `d1f4525b-…`), es fehlt nur noch „Run". Bis dahin zeigt die App
-  „Füllstands-Anzeige noch nicht aktiv".
+- **Migration ausgeführt** ✅ (nach zwei Anläufen: erst war die Chrome-Extension nicht
+  verbunden, dann war die Supabase-Session abgelaufen und der Tab-Renderer eingefroren —
+  ein Reload der Seite hat beides gelöst, die Session war danach wieder gültig).
+  Gegengeprüft per SQL: Tabelle ✓, RPC ✓, Policy ✓, `anon` darf **lesen** aber
+  **nicht schreiben** ✓, RPC-Ausführung für `anon` erlaubt ✓.
+  End-to-End über den echten `sb.rpc()`-Aufruf der App getestet — mit Absicht falschem
+  Login, damit nichts in die Produktionsdaten geschrieben wird: es kommt `P0001
+  „Login ungültig"` aus der eigenen Funktion (und **nicht** `PGRST202 function not found`),
+  d. h. Signatur und Parameternamen passen exakt zum Client-Aufruf.
 
 ## 2026-07-24 (später) — Grafisches Generalupdate über alle Seiten
 
