@@ -1,6 +1,6 @@
 # 🧺☀️ Wöschplan SO 16
 
-Waschraum-Buchungsplan für unser Haus SO 16 (6 Wohnungen, max. 12 Personen).
+Waschraum-Buchungsplan für unser Haus SO 16 (6 Parteien, max. 12 Personen).
 Reines HTML/JS ohne Build-Pipeline, Backend = Supabase (Postgres + RPC-Funktionen).
 
 ## Setup (einmalig)
@@ -26,7 +26,8 @@ Reines HTML/JS ohne Build-Pipeline, Backend = Supabase (Postgres + RPC-Funktione
 
 - **🏠 Übersicht:** Landing-Seite nach dem Login. Sonnenberg-Willkommensbanner,
   tageszeit-abhängige Begrüßung und auf einen Blick, *was heute läuft* — freie Slots,
-  Auslastung, eigene Termine, die heutigen Buchungen und der letzte Hausordnungs-Eintrag.
+  Auslastung, eigene Termine, die heutigen Buchungen, der **Waschraum-Füllstand**
+  (siehe unten) und der letzte Hausordnungs-Eintrag.
 - **📅 Kalender:** feste, verbindliche Buchung eines Zeitfensters — aber nur für
   **heute + die folgenden 3 Tage**, damit niemand den Waschraum wochenlang blockiert.
   Wünsche aus der Wochenvorschau erscheinen hier als unverbindliche Vorschau.
@@ -44,10 +45,26 @@ Setup: zusätzlich [`supabase-setup-wochenplan.sql`](supabase-setup-wochenplan.s
 [`supabase-migration-wishes-to-bookings.sql`](supabase-migration-wishes-to-bookings.sql)
 im SQL Editor ausführen.
 
+## Waschraum-Füllstand (virtueller Waschraum)
+
+Damit man vorher weiß, ob im Trockenraum überhaupt noch Platz zum Aufhängen ist, gehört zu
+jeder Buchung eine **kleine Aufgabe**: nach dem Buchen öffnet sich ein Dialog „Wie voll ist
+der Waschraum gerade?" mit fünf Stufen — ✨ leer · 🧦 ¼ · 👕 ½ · 🧺 ¾ · 🚫 voll (überspringbar
+mit „Später"). Melden kann man jederzeit auch ohne Buchung.
+
+Angezeigt wird das Ganze als **virtueller Waschraum**: eine SVG-Szene mit WM, Tumbler,
+Wäschekorb und einem Wäscheständer, an dem je nach Füllstand 0 bis 12 Wäschestücke hängen —
+plus Prozentzahl, Farbbalken (grün → orange → rot) und „gemeldet von *wem*, vor *wie lange*".
+Meldungen älter als 12 Stunden werden als *vielleicht veraltet* markiert. Groß auf der
+Übersicht, kompakt neben dem Belegungsring im Kalender.
+
+Setup: zusätzlich [`supabase-migration-raumstatus.sql`](supabase-migration-raumstatus.sql)
+im SQL Editor ausführen. Solange das fehlt, blendet die App die Anzeige einfach aus.
+
 ## Regeln
 
 - Buchungen sind für **heute und die folgenden 3 Tage** möglich (rollierendes 96h-Fenster,
-  serverseitig geprüft) — fair für alle 12 Personen, keine Wochen-Blockaden. Spätere Tage
+  serverseitig geprüft) — fair für alle 6 Parteien, keine Wochen-Blockaden. Spätere Tage
   sind als **Vorschau** sichtbar (🔒), aber noch nicht buchbar.
 - Zeitraster: 2-Stunden-Slots von 07:00–22:00 Uhr. **Waschmaschine und Tumbler werden immer
   gemeinsam** für das gewählte Zeitfenster gebucht — ein Klick, eine Buchung, statt zwei
@@ -85,7 +102,8 @@ Nutzung im Haus fair beobachten und bei Bedarf ansprechen lässt. Setup: zusätz
 
 Anders als beim Tippspiel läuft **jede Schreib-Operation über geprüfte
 Postgres-RPC-Funktionen** (`wp_login`, `wp_register`, `wp_create_booking`, `wp_send_chat`,
-`wp_admin_action`, …), nicht über direktes Tabellen-CRUD mit dem öffentlichen Anon-Key.
+`wp_set_room_status`, `wp_admin_action`, …), nicht über direktes Tabellen-CRUD mit dem
+öffentlichen Anon-Key.
 PINs sind für alle außer den geprüften Admin-Aufruf nicht auslesbar.
 
 Details zum Bau/Verlauf: [`SESSION-LOG.md`](SESSION-LOG.md),

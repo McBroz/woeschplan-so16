@@ -94,9 +94,9 @@
 
   /* ─── Modal ─── */
   .modal-backdrop { position: fixed; inset: 0; background: rgba(58,46,31,0.45); display: flex; align-items: center;
-    justify-content: center; z-index: 500; padding: 1rem; animation: fadeUp 0.2s ease; }
+    justify-content: center; z-index: 500; padding: 1rem; animation: fadeUp 0.2s ease; overflow-y: auto; }
   .modal-card { background: var(--card); border-radius: var(--radius); padding: 1.6rem; max-width: 380px; width: 100%;
-    box-shadow: 0 20px 50px rgba(0,0,0,0.25); }
+    box-shadow: 0 20px 50px rgba(0,0,0,0.25); max-height: calc(100vh - 2rem); overflow-y: auto; margin: auto; }
   .btn { background: linear-gradient(135deg, var(--sun) 0%, var(--amber) 100%); border: none; color: #fff; padding: 12px 20px;
     border-radius: 12px; font-size: 0.92rem; font-weight: 700; cursor: pointer; transition: all 0.2s; width: 100%;
     box-shadow: 0 6px 18px rgba(255,140,66,0.34); }
@@ -278,6 +278,64 @@
     animation: rise linear infinite; pointer-events: none; }
   @keyframes rise { 0% { transform: translateY(20px) scale(0.6); opacity: 0; } 20% { opacity: 0.8; } 100% { transform: translateY(-90px) scale(1); opacity: 0; } }
 
+  /* ═══════════ WASCHRAUM-FÜLLSTAND (virtueller Raum) ═══════════ */
+  .room-panel { background: linear-gradient(140deg, #FFFDF7 0%, #FFF4E3 100%); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 1.3rem 1.5rem; box-shadow: var(--shadow-sm); margin-bottom: 1.5rem; }
+  .room-flex { display: flex; gap: 1.5rem; align-items: center; flex-wrap: wrap; }
+  .room-scene { flex: 0 0 330px; max-width: 100%; border-radius: 16px; overflow: hidden; box-shadow: var(--shadow-sm); line-height: 0; }
+  .room-scene .room-svg { display: block; width: 100%; height: auto; }
+  .room-info { flex: 1 1 250px; min-width: 210px; }
+  @media (max-width: 640px){ .room-scene { flex-basis: 100%; } .room-panel { padding: 1.1rem 1.1rem; } }
+
+  .room-head { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; margin-bottom: 0.55rem; }
+  .room-pct { font-family: 'Baloo 2', sans-serif; font-weight: 800; font-size: 2.2rem; line-height: 1; }
+  .room-word { font-weight: 700; font-size: 0.98rem; }
+  .room-hint { font-size: 0.8rem; color: var(--text2); margin-top: 2px; }
+  .room-bar { height: 15px; border-radius: 9px; background: rgba(58,46,31,0.07); overflow: hidden;
+    box-shadow: inset 0 1px 3px rgba(58,46,31,0.09); }
+  .room-bar-fill { height: 100%; border-radius: 9px; transition: width 0.55s cubic-bezier(.34,1.3,.5,1), background 0.4s; }
+  .room-ticks { display: flex; justify-content: space-between; font-size: 0.66rem; color: var(--text2); margin-top: 5px; font-weight: 600; }
+  .room-meta { font-size: 0.76rem; color: var(--text2); margin-top: 0.7rem; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+  .room-meta.stale { color: var(--warn); font-weight: 600; }
+  .room-report { margin-top: 0.8rem; display: inline-flex; align-items: center; gap: 7px; background: linear-gradient(135deg, var(--sun) 0%, var(--amber) 100%);
+    border: none; color: #fff; border-radius: 12px; padding: 9px 16px; font-family: inherit; font-weight: 700; font-size: 0.85rem;
+    cursor: pointer; box-shadow: 0 6px 16px rgba(255,140,66,0.3); transition: all 0.18s; }
+  .room-report:hover { transform: translateY(-2px); box-shadow: 0 9px 22px rgba(255,140,66,0.42); }
+
+  /* Kompakt-Variante im Kalender */
+  .status-row { display: grid; grid-template-columns: 1fr 1fr; gap: 0.9rem; margin-bottom: 1.4rem; }
+  @media (max-width: 820px){ .status-row { grid-template-columns: 1fr; } }
+  .status-row .occupancy-banner { margin-bottom: 0; height: 100%; }
+  .room-mini { display: flex; align-items: center; gap: 14px; background: var(--card); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 1.1rem 1.3rem; box-shadow: var(--shadow-sm); cursor: pointer; transition: all 0.18s; text-align: left;
+    width: 100%; font-family: inherit; color: inherit; }
+  .room-mini:hover { border-color: var(--sun-deep); transform: translateY(-2px); box-shadow: var(--shadow); }
+  .room-mini .rm-ico { font-size: 1.7rem; flex-shrink: 0; }
+  .room-mini .rm-body { flex: 1; min-width: 0; }
+  .room-mini .rm-top { display: flex; align-items: baseline; gap: 8px; }
+  .room-mini .rm-pct { font-family: 'Baloo 2', sans-serif; font-weight: 800; font-size: 1.6rem; line-height: 1; }
+  .room-mini .rm-word { font-size: 0.84rem; color: var(--text2); }
+  .room-mini .room-bar { display: block; height: 10px; margin-top: 7px; }
+  .room-mini .room-bar-fill { display: block; }
+  .room-mini .rm-meta { display: block; font-size: 0.72rem; color: var(--text2); margin-top: 5px; }
+  .room-mini .rm-edit { font-size: 0.72rem; color: var(--sun-deep); font-weight: 700; flex-shrink: 0; }
+
+  /* Melde-Dialog */
+  .room-modal { max-width: 440px; }
+  .room-modal h3 { font-size: 1.25rem; margin-bottom: 0.25rem; }
+  .room-modal .rm-lead { font-size: 0.84rem; color: var(--text2); line-height: 1.5; margin-bottom: 1rem; }
+  .room-modal .room-scene { flex-basis: 100%; max-width: 290px; margin: 0 auto 0.8rem; }
+  .lvl-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; margin-top: 1rem; }
+  .lvl-btn { background: var(--cream); border: 1px solid var(--border); border-radius: 12px; padding: 9px 3px; cursor: pointer;
+    font-family: inherit; font-weight: 700; font-size: 0.76rem; color: var(--text2); transition: all 0.15s;
+    display: flex; flex-direction: column; align-items: center; gap: 3px; }
+  .lvl-btn .lvl-ico { font-size: 1.05rem; }
+  .lvl-btn:hover { border-color: var(--sun-deep); color: var(--text); transform: translateY(-2px); }
+  .lvl-btn.sel { background: linear-gradient(135deg, var(--sun) 0%, var(--amber) 100%); color: #fff; border-color: transparent;
+    box-shadow: 0 6px 16px rgba(255,140,66,0.34); transform: translateY(-2px); }
+  .room-modal .rm-note { margin-top: 0.9rem; }
+  .room-modal .rm-note input { font-size: 0.88rem; }
+
   /* ═══════════ WOCHENVORSCHAU ═══════════ */
   .wv-toolbar { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; background: var(--card); border: 1px solid var(--border);
     border-radius: 16px; padding: 0.9rem 1.2rem; margin-bottom: 1.5rem; box-shadow: var(--shadow-sm); }
@@ -429,7 +487,7 @@
 <div class="page active" id="page-login">
   <div class="card">
     <div class="page-title">☀️ Wösch<span>plan</span> SO 16</div>
-    <div class="page-sub">Wäscheraum-Buchung für unser Haus &mdash; 6 Wohnungen, max. 12 Personen.</div>
+    <div class="page-sub">Waschraum-Buchung für unser Haus am Sonnenberg &mdash; fair geteilt unter allen <b>6 Parteien</b>. ☀️</div>
 
     <div id="step-name">
       <div class="form-group">
@@ -524,6 +582,17 @@
 
   <div class="tile-row" id="home-tiles"></div>
 
+  <div class="room-panel">
+    <div class="panel-head">
+      <div class="panel-title">🧺 Waschraum gerade</div>
+      <button class="panel-link" onclick="openRoomCheck(false)">Status melden →</button>
+    </div>
+    <div class="room-flex">
+      <div class="room-scene" id="room-scene-home"></div>
+      <div class="room-info" id="room-info-home"></div>
+    </div>
+  </div>
+
   <div class="dash-grid">
     <div class="panel">
       <div class="panel-head">
@@ -573,7 +642,7 @@
     </svg>
     <div class="wh-text">
       <div class="wh-title">Bereit zum Waschen? ☀️</div>
-      <div class="wh-sub">Tippe unten auf einen freien Platz — buchbar für <b>heute &amp; die nächsten 3 Tage</b>. WM &amp; TU gehören immer zusammen zum Zeitfenster.</div>
+      <div class="wh-sub">Tippe unten auf einen freien Platz — buchbar für <b>heute &amp; die nächsten 3 Tage</b>. WM &amp; TU gehören immer zusammen zum Zeitfenster. Nach dem Buchen kurz melden, wie voll der Raum gerade ist. 🙏</div>
     </div>
     <div class="bubble" style="width:14px;height:14px;left:44px;bottom:8px;animation-duration:4s"></div>
     <div class="bubble" style="width:9px;height:9px;left:60px;bottom:4px;animation-duration:5.5s;animation-delay:1s"></div>
@@ -581,7 +650,10 @@
   </div>
 
   <div class="day-tabs" id="day-tabs"></div>
-  <div class="occupancy-banner" id="occ-banner"></div>
+  <div class="status-row">
+    <div class="occupancy-banner" id="occ-banner"></div>
+    <button class="room-mini" id="room-mini" onclick="openRoomCheck(false)"></button>
+  </div>
   <div class="info-strip">
     <div class="info-chip">
       <span class="ic-emoji">📅</span>
@@ -600,7 +672,6 @@
       <span class="ic-arrow">🗓️ →</span>
     </button>
   </div>
-  <div id="cal-wishes"></div>
   <div style="height:14px"></div>
   <div class="slot-grid" id="slot-grid"></div>
 </div>
@@ -856,6 +927,10 @@ async function loadHome(){
     }).join('');
   }
 
+  // Waschraum-Füllstand
+  await loadRoomStatus();
+  renderRoomWidgets();
+
   // Hausordnung-Vorschau (letzter Eintrag)
   const boardEl = document.getElementById('home-board');
   const {data:msgs} = await sb.from('wp_chat_messages').select('*').order('id',{ascending:false}).limit(1);
@@ -1041,6 +1116,8 @@ async function loadKalender(){
   }
 
   renderOccBanner(bookedCount, totalSlots);
+  await loadRoomStatus();
+  renderRoomWidgets();
 }
 
 function renderOccBanner(booked, total){
@@ -1060,13 +1137,242 @@ function renderOccBanner(booked, total){
     </div>`;
 }
 
+// ═══════════ WASCHRAUM-FÜLLSTAND ═══════════
+let ROOM_STATUS = null;     // letzte Meldung (oder null = noch keine)
+let ROOM_AVAILABLE = true;  // false, falls die Migration noch nicht gelaufen ist
+let roomPick = 50;
+
+const ROOM_LEVELS = [
+  {v:0,   label:'leer', ico:'✨', word:'Alles frei',     hint:'nichts hängt — freie Bahn für deine Wäsche'},
+  {v:25,  label:'¼',    ico:'🧦', word:'Wenig belegt',   hint:'viel Platz zum Aufhängen'},
+  {v:50,  label:'½',    ico:'👕', word:'Halb voll',      hint:'noch Platz für eine Ladung'},
+  {v:75,  label:'¾',    ico:'🧺', word:'Ziemlich voll',  hint:'nur noch wenig Platz frei'},
+  {v:100, label:'voll', ico:'🚫', word:'Voll belegt',    hint:'kein Platz mehr — bitte abräumen'}
+];
+function roomLevelInfo(lv){
+  let best = ROOM_LEVELS[0];
+  for(const l of ROOM_LEVELS) if(Math.abs(l.v-lv) < Math.abs(best.v-lv)) best = l;
+  return best;
+}
+function roomColor(lv){
+  if(lv <= 20) return '#43B25E';
+  if(lv <= 45) return '#8CC152';
+  if(lv <= 70) return '#FFC23C';
+  if(lv <= 88) return '#FF9E22';
+  return '#E8623C';
+}
+function timeAgo(iso){
+  const min = (Date.now() - new Date(iso).getTime())/60000;
+  if(min < 2) return 'gerade eben';
+  if(min < 60) return `vor ${Math.round(min)} Min`;
+  if(min < 48*60) return `vor ${Math.round(min/60)} Std`;
+  return `vor ${Math.round(min/1440)} Tagen`;
+}
+
+// Virtueller Waschraum: Wäscheständer füllt sich mit dem Füllstand
+function roomSceneSvg(level, uid){
+  const lv = Math.max(0, Math.min(100, Math.round(level)));
+  const rails = [ {y:70, xs:[187,207,227,247]}, {y:92, xs:[185,206,227,248]}, {y:114, xs:[183,205,227,249]} ];
+  const total = 12;
+  const n = Math.round(lv/100*total);
+  const cols = ['#FFFFFF','#BFE7F2','#FFE0B0','#FFC9C0','#DCEBC8','#FFFFFF','#CDE4F5','#FFE9C6','#F6D9E4','#E4F0D2','#FFFFFF','#C9E6F0'];
+  let items = '', i = 0;
+  for(const r of rails){
+    for(const x of r.xs){
+      if(i < n){
+        const h = 15 + (i % 3) * 2;
+        items += `<path d="M${x-7},${r.y} l2.5,-3.5 h9 l2.5,3.5 v${h} q0,2.5 -2.5,2.5 h-9 q-2.5,0 -2.5,-2.5 z"
+          fill="${cols[i%cols.length]}" stroke="rgba(58,46,31,0.15)" stroke-width="1"/>`;
+      }
+      i++;
+    }
+  }
+  const sparkles = n === 0
+    ? `<g fill="#FFD34E" opacity="0.9"><circle cx="200" cy="86" r="2.5"/><circle cx="228" cy="76" r="2"/><circle cx="216" cy="104" r="3"/></g>` : '';
+  const overflow = lv >= 85
+    ? `<path d="M138,116 q7,-9 13,-2 q6,-7 11,2 z" fill="#FFFFFF" stroke="rgba(58,46,31,0.14)" stroke-width="1"/>` : '';
+
+  return `<svg class="room-svg" viewBox="0 0 300 170" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Waschraum zu ${lv} Prozent belegt">
+    <defs>
+      <linearGradient id="rwall${uid}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFFAF0"/><stop offset="1" stop-color="#FCEFDC"/></linearGradient>
+      <linearGradient id="rflr${uid}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#EBD7B8"/><stop offset="1" stop-color="#DDC49C"/></linearGradient>
+      <linearGradient id="rsky${uid}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#CFEFFB"/><stop offset="1" stop-color="#93D8EF"/></linearGradient>
+      <clipPath id="rwin${uid}"><rect x="16" y="14" width="60" height="44" rx="5"/></clipPath>
+    </defs>
+    <rect width="300" height="170" fill="url(#rwall${uid})"/>
+    <rect y="138" width="300" height="32" fill="url(#rflr${uid})"/>
+    <line x1="0" y1="138" x2="300" y2="138" stroke="rgba(58,46,31,0.11)" stroke-width="1.5"/>
+
+    <!-- Fenster mit Sonne über dem Sonnenberg -->
+    <g clip-path="url(#rwin${uid})">
+      <rect x="16" y="14" width="60" height="44" fill="url(#rsky${uid})"/>
+      <circle cx="62" cy="27" r="8" fill="#FFD34E"/>
+      <path d="M14,46 q15,-9 30,-2 q16,7 34,-2 v18 h-64 z" fill="#FFB86B" opacity="0.55"/>
+    </g>
+    <rect x="16" y="14" width="60" height="44" rx="5" fill="none" stroke="#E6CDA5" stroke-width="3"/>
+    <line x1="46" y1="14" x2="46" y2="58" stroke="#E6CDA5" stroke-width="3"/>
+
+    <!-- Schild an der Wand -->
+    <g><rect x="100" y="22" width="54" height="21" rx="5" fill="#FFF3DC" stroke="#E6CDA5" stroke-width="2"/>
+      <text x="127" y="37" text-anchor="middle" font-family="'Baloo 2',sans-serif" font-size="11" font-weight="800" fill="#D08B36">SO 16</text></g>
+
+    <!-- Waschmaschine -->
+    <g>
+      <rect x="22" y="84" width="48" height="54" rx="7" fill="#FFFFFF" stroke="#E9CFA6" stroke-width="2"/>
+      <rect x="23" y="85" width="46" height="12" rx="6" fill="#FFE7BE"/>
+      <circle cx="33" cy="91" r="2.2" fill="#FF8C42"/><circle cx="41" cy="91" r="2.2" fill="#4CAF6D"/>
+      <circle cx="46" cy="112" r="14" fill="#EAF6FC" stroke="#8FD6EE" stroke-width="2"/>
+      <circle cx="46" cy="112" r="7.5" fill="#D3ECF8"/>
+      <text x="46" y="134" text-anchor="middle" font-family="Inter,sans-serif" font-size="7" font-weight="700" fill="#C4A47C">WM</text>
+    </g>
+    <!-- Tumbler -->
+    <g>
+      <rect x="78" y="84" width="48" height="54" rx="7" fill="#FFFFFF" stroke="#E9CFA6" stroke-width="2"/>
+      <rect x="79" y="85" width="46" height="12" rx="6" fill="#FFDCC0"/>
+      <circle cx="89" cy="91" r="2.2" fill="#FF6B3C"/><circle cx="97" cy="91" r="2.2" fill="#FFC23C"/>
+      <circle cx="102" cy="112" r="14" fill="#FFF1E4" stroke="#FFB78A" stroke-width="2"/>
+      <circle cx="102" cy="112" r="7.5" fill="#FFE0C9"/>
+      <text x="102" y="134" text-anchor="middle" font-family="Inter,sans-serif" font-size="7" font-weight="700" fill="#C4A47C">TU</text>
+    </g>
+    <!-- Wäschekorb -->
+    <g>${overflow}
+      <path d="M134,118 l4,20 h24 l4,-20 z" fill="#E9BB80" stroke="#CE9A5C" stroke-width="1.6" stroke-linejoin="round"/>
+      <rect x="131" y="114" width="38" height="5.5" rx="2.7" fill="#D9A669"/>
+    </g>
+    <!-- Wäscheständer -->
+    <g fill="none" stroke="#C9A97F" stroke-linecap="round">
+      <path d="M178,62 L162,142" stroke-width="3.6"/><path d="M256,62 L272,142" stroke-width="3.6"/>
+      <path d="M178,62 H256" stroke-width="3"/>
+      <path d="M176,70 H258" stroke-width="2.4"/><path d="M172,92 H262" stroke-width="2.4"/><path d="M167,114 H267" stroke-width="2.4"/>
+    </g>
+    ${sparkles}${items}
+  </svg>`;
+}
+
+async function loadRoomStatus(){
+  const {data,error} = await sb.from('wp_room_status').select('*').order('created_at',{ascending:false}).limit(1);
+  if(error){ ROOM_AVAILABLE = false; ROOM_STATUS = null; return; }
+  ROOM_AVAILABLE = true;
+  ROOM_STATUS = (data && data.length) ? data[0] : null;
+}
+
+function roomInfoHtml(){
+  if(!ROOM_AVAILABLE) return `<div class="empty-hint">Die Füllstands-Anzeige ist noch nicht aktiv.${IS_ADMIN?'<br><small>Migration <code>supabase-migration-raumstatus.sql</code> im SQL-Editor ausführen.</small>':''}</div>`;
+  const lv = ROOM_STATUS ? ROOM_STATUS.level : 0;
+  const info = roomLevelInfo(lv);
+  const col = roomColor(lv);
+  const stale = ROOM_STATUS && (Date.now()-new Date(ROOM_STATUS.created_at).getTime()) > 12*3600*1000;
+  const meta = !ROOM_STATUS
+    ? `<span>Noch niemand hat gemeldet — <b>mach du den Anfang</b> ☀️</span>`
+    : `<span>🙋 gemeldet von <b>${escHtml(ROOM_STATUS.user_name)}</b> · ${timeAgo(ROOM_STATUS.created_at)}${stale?' · vielleicht veraltet':''}</span>`;
+  const note = (ROOM_STATUS && ROOM_STATUS.note) ? `<div class="room-hint" style="margin-top:0.5rem">💬 „${escHtml(ROOM_STATUS.note)}“</div>` : '';
+  return `<div class="room-head">
+      <span class="room-pct" style="color:${col}">${ROOM_STATUS?lv+'%':'–'}</span>
+      <span class="room-word" style="color:${col}">${ROOM_STATUS?info.word:'noch nicht gemeldet'}</span>
+    </div>
+    <div class="room-hint" style="margin-bottom:0.7rem">${ROOM_STATUS?info.hint:'Sag den anderen, wie viel Platz gerade frei ist.'}</div>
+    <div class="room-bar"><div class="room-bar-fill" style="width:${ROOM_STATUS?Math.max(lv,3):0}%;background:${col}"></div></div>
+    <div class="room-ticks"><span>leer</span><span>¼</span><span>½</span><span>¾</span><span>voll</span></div>
+    ${note}
+    <div class="room-meta ${stale?'stale':''}">${meta}</div>
+    <button class="room-report" onclick="openRoomCheck(false)">🖐 Jetzt melden</button>`;
+}
+
+function roomMiniHtml(){
+  if(!ROOM_AVAILABLE) return `<span class="rm-ico">🧺</span><span class="rm-body"><span class="rm-meta">Füllstands-Anzeige noch nicht aktiv</span></span>`;
+  const lv = ROOM_STATUS ? ROOM_STATUS.level : 0;
+  const col = roomColor(lv);
+  const info = roomLevelInfo(lv);
+  const meta = ROOM_STATUS
+    ? `🙋 ${escHtml(ROOM_STATUS.user_name)} · ${timeAgo(ROOM_STATUS.created_at)}`
+    : 'noch niemand hat gemeldet — tippen';
+  return `<span class="rm-ico">🧺</span>
+    <span class="rm-body">
+      <span class="rm-top"><span class="rm-pct" style="color:${col}">${ROOM_STATUS?lv+'%':'–'}</span>
+        <span class="rm-word">${ROOM_STATUS?info.word:'Waschraum-Füllstand'}</span></span>
+      <span class="room-bar"><span class="room-bar-fill" style="width:${ROOM_STATUS?Math.max(lv,3):0}%;background:${col}"></span></span>
+      <span class="rm-meta">${meta}</span>
+    </span>
+    <span class="rm-edit">melden ✏️</span>`;
+}
+
+function renderRoomWidgets(){
+  const sc = document.getElementById('room-scene-home');
+  if(sc) sc.innerHTML = roomSceneSvg(ROOM_STATUS ? ROOM_STATUS.level : 0, 'home');
+  const inf = document.getElementById('room-info-home');
+  if(inf) inf.innerHTML = roomInfoHtml();
+  const mini = document.getElementById('room-mini');
+  if(mini) mini.innerHTML = roomMiniHtml();
+}
+
+function openRoomCheck(afterBooking){
+  if(!ROOM_AVAILABLE){ toast('Füllstands-Meldung noch nicht eingerichtet','e'); return; }
+  closeRoomCheck();
+  roomPick = ROOM_STATUS ? ROOM_STATUS.level : 50;
+  const bd = document.createElement('div');
+  bd.className = 'modal-backdrop';
+  bd.id = 'room-modal';
+  bd.innerHTML = `<div class="modal-card room-modal">
+    <h3>${afterBooking ? '🎉 Gebucht! Kurz noch…' : '🧺 Waschraum-Füllstand'}</h3>
+    <div class="rm-lead">${afterBooking
+      ? 'Deine kleine Aufgabe beim Buchen: markier kurz, <b>wie voll der Waschraum gerade ist</b> — so weiss die nächste Partei, ob noch Platz zum Aufhängen bleibt.'
+      : 'Wie voll ist der Waschraum <b>gerade jetzt</b>? Kurz markieren — alle im Haus sehen es sofort.'}</div>
+    <div class="room-scene" id="room-scene-modal"></div>
+    <div class="room-head" style="justify-content:center">
+      <span class="room-pct" id="rm-pick-pct">–</span><span class="room-word" id="rm-pick-word"></span>
+    </div>
+    <div class="room-bar"><div class="room-bar-fill" id="rm-pick-bar"></div></div>
+    <div class="lvl-grid" id="rm-lvl-grid"></div>
+    <div class="form-group rm-note" style="margin-bottom:0">
+      <label>Notiz (optional)</label>
+      <input type="text" id="rm-note" placeholder="z.B. Ständer 2 ist noch frei" maxlength="60">
+    </div>
+    <button class="btn" style="margin-top:1rem" onclick="submitRoomStatus()">✓ Füllstand melden</button>
+    <button class="btn btn-secondary" onclick="closeRoomCheck()">${afterBooking ? 'Später' : 'Abbrechen'}</button>
+  </div>`;
+  bd.onclick = e => { if(e.target === bd) closeRoomCheck(); };
+  document.body.appendChild(bd);
+  renderRoomPick();
+}
+function closeRoomCheck(){ const m = document.getElementById('room-modal'); if(m) m.remove(); }
+function setRoomPick(v){ roomPick = v; renderRoomPick(); }
+
+function renderRoomPick(){
+  const sc = document.getElementById('room-scene-modal');
+  if(!sc) return;
+  const info = roomLevelInfo(roomPick), col = roomColor(roomPick);
+  sc.innerHTML = roomSceneSvg(roomPick, 'modal');
+  const pct = document.getElementById('rm-pick-pct');
+  pct.textContent = roomPick + '%'; pct.style.color = col;
+  const word = document.getElementById('rm-pick-word');
+  word.textContent = info.word; word.style.color = col;
+  const bar = document.getElementById('rm-pick-bar');
+  bar.style.width = Math.max(roomPick,3) + '%'; bar.style.background = col;
+  document.getElementById('rm-lvl-grid').innerHTML = ROOM_LEVELS.map(l =>
+    `<button class="lvl-btn ${l.v===roomPick?'sel':''}" onclick="setRoomPick(${l.v})">
+      <span class="lvl-ico">${l.ico}</span><span>${l.label}</span></button>`).join('');
+}
+
+async function submitRoomStatus(){
+  const note = (document.getElementById('rm-note')?.value || '').trim();
+  loading(true);
+  const {error} = await sb.rpc('wp_set_room_status',{p_name:ME, p_pin:MY_PIN, p_level:roomPick, p_note:note || null});
+  loading(false);
+  if(error){ toast(error.message,'e'); return; }
+  closeRoomCheck();
+  toast('Danke! Füllstand gemeldet 🧺');
+  await loadRoomStatus();
+  renderRoomWidgets();
+}
+
 async function bookSlot(startIso, endIso){
   loading(true);
   const {data,error} = await sb.rpc('wp_create_booking',{p_name:ME,p_pin:MY_PIN,p_start:startIso,p_end:endIso});
   loading(false);
   if(error){ toast(error.message,'e'); return; }
   toast('Gebucht! 🧺☀️');
-  loadKalender();
+  await loadKalender();
+  openRoomCheck(true); // kurze Aufgabe: Füllstand des Raums markieren
 }
 
 async function cancelBooking(id){

@@ -281,6 +281,42 @@ indem der Monaco-Editor direkt beschrieben wird (`monaco.editor.getModels()[0].s
 statt zu tippen (Auto-Klammern zerlegen sonst mehrzeiliges SQL). „Potential issue detected"-
 Dialog bei create/alter/delete ist normal → „Run query".
 
+## 2026-07-24 — Waschraum-Füllstand („virtueller Waschraum")
+
+Wunsch: beim Buchen einer Wasch-Session soll man **kurz markieren, wie voll der Waschraum
+gerade ist** (10 % / 50 % / ¾) — grafisch, mit Balken oder virtuellem Raum.
+
+- **Neue Tabelle + RPC** (`supabase-migration-raumstatus.sql`): `wp_room_status`
+  (`user_name`, `level` 0–100, `note`, `created_at`) mit RLS wie überall — anon darf nur
+  lesen, geschrieben wird ausschliesslich über `wp_set_room_status(name, pin, level, note)`
+  (security definer, prüft Name+PIN). Die RPC hält die Historie auf 200 Meldungen begrenzt;
+  der **jüngste Eintrag ist der aktuelle Stand**.
+- **Virtueller Waschraum als Inline-SVG** (`roomSceneSvg(level, uid)`): Raum mit Fenster
+  (Sonne über dem Sonnenberg), Wandschild „SO 16", Waschmaschine (WM) + Tumbler (TU),
+  Wäschekorb und einem **Wäscheständer mit 3 Schienen à 4 Plätzen = 12 Wäschestücken**.
+  Der Füllstand steuert, wie viele Stücke hängen: 0 % → 0 (mit Funkeln), 25 % → 3,
+  50 % → 6, 75 % → 9, 100 % → 12 (+ überquellender Korb). Gradient-IDs sind per `uid`
+  eindeutig, damit mehrere Szenen gleichzeitig auf der Seite funktionieren.
+- **Melde-Dialog** öffnet sich **automatisch nach jeder Buchung** („🎉 Gebucht! Kurz noch…",
+  mit „Später"-Ausstieg) und jederzeit über die Widgets. 5 Stufen als Buttons
+  (✨ leer · 🧦 ¼ · 👕 ½ · 🧺 ¾ · 🚫 voll) — die Auswahl aktualisiert Szene, Prozentzahl,
+  Wort („Halb voll") und Farbbalken **live**. Optionale Notiz (z. B. „Ständer 2 ist frei").
+- **Anzeige an zwei Stellen:** grosses Panel „🧺 Waschraum gerade" auf der Übersicht
+  (Szene + Prozent + Balken mit Skala leer/¼/½/¾/voll + „gemeldet von X, vor 2 Std"),
+  und eine Kompaktkachel im Kalender **neben** dem Belegungsring (neues `.status-row`-Grid).
+  Meldungen älter als 12 h werden als „vielleicht veraltet" markiert.
+- **Grafische Politur:** Login-Text auf „6 Parteien" (statt „max. 12 Personen"),
+  Modals scrollen jetzt intern (`max-height: calc(100vh - 2rem)`), toter `#cal-wishes`-
+  Container entfernt, Hinweis im Kalender-Hero ergänzt.
+- **Getestet** im lokalen Preview-Server (`python -m http.server`, `.claude/launch.json`):
+  Wäschestücke pro Stufe 0/3/6/9/12 ✓, keine Grafik ragt aus dem Ständer oder in den Boden ✓,
+  kein horizontales Scrollen bei 375 px und 360×600 ✓, Dialog auf kleinen Displays scrollbar
+  und Submit erreichbar ✓, ohne Migration degradiert die App sauber statt zu crashen ✓,
+  keine Konsolenfehler ✓.
+- **Offen:** die Migration konnte diesmal **nicht** selbst ausgeführt werden — die
+  Chrome-Extension war nicht verbunden. `supabase-migration-raumstatus.sql` muss noch in den
+  Supabase SQL-Editor. Bis dahin zeigt die App nur „Füllstands-Anzeige noch nicht aktiv".
+
 ## Offene Schritte (Nutzer) — Stand 2026-07-19
 
 1. ✅ Alle SQL-Skripte ausgeführt (Setup, Wunschboard, 2-Tage-Migration, Statistik).
